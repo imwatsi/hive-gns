@@ -3,7 +3,6 @@ import psycopg2
 
 class DbSession:
     def __init__(self, config):
-        # TODO: retrieve from env_variables
         self.conn = psycopg2.connect(f"dbname=haf user={config['db_username']} password={config['db_password']}")
         self.conn.autocommit = False
         self.cur = self.conn.cursor()
