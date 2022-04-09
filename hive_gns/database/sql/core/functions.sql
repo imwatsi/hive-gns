@@ -37,7 +37,7 @@ CREATE OR REPLACE FUNCTION gns.ops( _first_block BIGINT, _last_block BIGINT )
                 _body := temprow.body;
 
                 WITH _ins AS (
-                    INSERT INTO gns.ops as gnsops(
+                    INSERT INTO gns.ops AS gnsops(
                         hive_opid, op_type_id, block_num, created, transaction_id, body)
                     VALUES
                         (_hive_opid, _block_num, _block_timestamp, _transaction_id, _body);
