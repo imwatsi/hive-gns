@@ -8,8 +8,10 @@ CREATE OR REPLACE FUNCTION gns.transfer_operation (_gns_op_id BIGINT, _block_num
             -- HBD
             IF _nai = '@@000000013' THEN
                 _currency := 'HBD';
+            -- HIVE
             ELSIF _nai = '@@000000021' THEN
                 _currency := 'HIVE';
+            -- HP
             ELSIF _nai = '@@000000037' THEN
                 _currency := 'HP';
             END IF;
