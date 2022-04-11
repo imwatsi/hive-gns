@@ -18,6 +18,6 @@ CREATE TABLE IF NOT EXISTS gns.ops(
 );
 
 CREATE TABLE IF NOT EXISTS gns.accounts(
-    account VARCHAR(16),
+    account VARCHAR(16) UNIQUE,
     last_read TIMESTAMP
 );
