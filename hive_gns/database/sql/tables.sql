@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS gns.global_props(
 
 CREATE TABLE IF NOT EXISTS gns.ops(
     gns_op_id BIGSERIAL PRIMARY KEY,
-    hive_opid BIGINT NOT NULL,
+    hive_opid BIGINT UNIQUE NOT NULL,
     op_type_id SMALLINT NOT NULL,
     block_num INTEGER NOT NULL,
     created TIMESTAMP,
@@ -20,4 +20,13 @@ CREATE TABLE IF NOT EXISTS gns.ops(
 CREATE TABLE IF NOT EXISTS gns.accounts(
     account VARCHAR(16) UNIQUE,
     last_read TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS gns.user_prefs(
+    hive_opid BIGINT NOT NULL UNIQUE REFERENCES gns.ops(hive_opid),
+    account VARCHAR(16) NOT NULL REFERENCES gns.accounts(account),
+    app VARCHAR(64) NOT NULL,
+    subscriptions INTEGER[],
+    subscriptions_opts JSON[],
+    UNIQUE (account, app)
 );
