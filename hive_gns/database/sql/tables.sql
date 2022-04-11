@@ -18,12 +18,12 @@ CREATE TABLE IF NOT EXISTS gns.ops(
 );
 
 CREATE TABLE IF NOT EXISTS gns.accounts(
-    account VARCHAR(16) UNIQUE,
+    account VARCHAR(16) PRIMARY KEY,
     last_read TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS gns.user_prefs(
-    hive_opid BIGINT NOT NULL UNIQUE REFERENCES gns.ops(hive_opid),
+    gns_op_id BIGINT NOT NULL UNIQUE REFERENCES gns.ops(gns_op_id),
     account VARCHAR(16) NOT NULL REFERENCES gns.accounts(account),
     app VARCHAR(64) NOT NULL,
     subscriptions INTEGER[],
