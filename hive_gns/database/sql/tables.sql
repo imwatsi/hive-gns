@@ -15,18 +15,18 @@ CREATE TABLE IF NOT EXISTS gns.ops(
     created TIMESTAMP,
     transaction_id CHAR(40)
     body TEXT
-);
+) INHERITS( hive.gns );
 
 CREATE TABLE IF NOT EXISTS gns.accounts(
     account VARCHAR(16) PRIMARY KEY,
     last_read TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS gns.user_prefs(
-    gns_op_id BIGINT NOT NULL UNIQUE REFERENCES gns.ops(gns_op_id),
-    account VARCHAR(16) NOT NULL REFERENCES gns.accounts(account),
+CREATE TABLE IF NOT EXISTS gns.account_prefs(
+    gns_op_id BIGINT NOT NULL UNIQUE REFERENCES gns.ops(gns_op_id) ON DELETE CASCADE,
+    account VARCHAR(16) NOT NULL REFERENCES gns.accounts(account) ON DELETE CASCADE,
     app VARCHAR(64) NOT NULL,
     subscriptions INTEGER[],
     subscriptions_opts JSON[],
     UNIQUE (account, app)
-);
+) INHERITS( hive.gns );
