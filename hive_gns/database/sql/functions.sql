@@ -36,27 +36,10 @@ CREATE OR REPLACE FUNCTION gns.ops( _first_block BIGINT, _last_block BIGINT )
                 _hive_op_type_id := temprow.op_type_id;
                 _body := temprow.body;
 
-                WITH _ins AS (
-                    INSERT INTO gns.ops AS gnsops(
-                        hive_opid, op_type_id, block_num, created, transaction_id, body)
-                    VALUES
-                        (_hive_opid, _block_num, _block_timestamp, _transaction_id, _body);
-                    RETURNING gns_op_id
-                )
-                SELECT gns_op_id INTO _new_id FROM _ins;
-
-                -- transfer_operation
-                IF _hive_op_type_id = 2 THEN
-                    PERFORM SELECT gns.transfer_operation (
-                        _new_id,
-                        _block_num,
-                        _created,
-                        _body::json->'value'->>'from',
-                        _body::json->'value'->>'to',
-                        _body::json->'value'->>'nai',
-                        _body::json->'value'->>'amount',
-                        _body::json->'value'->>'memo'
-                    );
+                INSERT INTO gns.ops(
+                    hive_opid, op_type_id, block_num, created, transaction_id, body)
+                VALUES
+                    (_hive_opid, _block_num, _block_timestamp, _transaction_id, _body);
 
             END LOOP;
             UPDATE global_props SET (head_hive_opid, head_block_num, head_block_time) = (_hive_opid, _block_num, _block_timestamp);
