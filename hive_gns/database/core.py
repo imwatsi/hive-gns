@@ -1,9 +1,13 @@
 import os
 import psycopg2
 
+from hive_gns.config import Config
+
+config = Config.config
+
 class DbSession:
-    def __init__(self, config):
-        self.conn = psycopg2.connect(f"dbname=haf user={config['db_username']} password={config['db_password']}")
+    def __init__(self):
+        self.conn = psycopg2.connect(f"dbname={config['db_name']} user={config['db_username']} password={config['db_password']}")
         self.conn.autocommit = False
         self.cur = self.conn.cursor()
 
@@ -43,14 +47,14 @@ class DbSession:
 class DbSetup:
 
     @classmethod
-    def check_db(cls, config):
+    def check_db(cls):
         # check if it exists
         try:
             # TODO: retrieve authentication from config 
-            cls.conn = psycopg2.connect(f"dbname=haf user={config['db_username']} password={config['db_password']}")
+            cls.conn = psycopg2.connect(f"dbname={config['db_name']} user={config['db_username']} password={config['db_password']}")
         except psycopg2.OperationalError as e:
             if "haf" in e.args[0] and "does not exist" in e.args[0]:
-                print("No database found. Please create a 'haf' database in PostgreSQL.")
+                print(f"No database found. Please create a '{config['db_name']}' database in PostgreSQL.")
                 os._exit(1)
             else:
                 print(e)
