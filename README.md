@@ -6,7 +6,7 @@
 </p>
 
 
-<center><i>A global notification system for dApps on the Hive Blockchain</i></center>
+<p align="center">A global notification system for dApps on the Hive Blockchain</p>
 
 ---
 
