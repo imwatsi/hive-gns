@@ -38,9 +38,11 @@ CREATE TABLE IF NOT EXISTS gns.account_prefs(
 ) INHERITS( hive.gns );
 
 CREATE TABLE IF NOT EXISTS gns.account_notifs(
+    id BIGSERIAL PRIMARY KEY,
     gns_op_id BIGINT NOT NULL UNIQUE REFERENCES gns.ops(gns_op_id) ON DELETE CASCADE,
     account VARCHAR(16) NOT NULL REFERENCES gns.accounts(account) ON DELETE CASCADE,
-    notif_id VARCHAR(128) NOT NULL,
+    module_name VARCHAR(128) NOT NULL,
+    notif_name VARCHAR(128) NOT NULL,
     created TIMESTAMP NOT NULL,
     remark VARCHAR(500) NOT NULL,
     payload JSON
