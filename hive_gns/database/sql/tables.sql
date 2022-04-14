@@ -18,6 +18,11 @@ CREATE TABLE IF NOT EXISTS gns.ops(
     body TEXT
 ) INHERITS( hive.gns );
 
+CREATE TABLE IF NOT EXISTS gns.module_state(
+    module VARCHAR(64) PRIMARY KEY,
+    latest_gns_op_id BIGINT DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS gns.accounts(
     account VARCHAR(16) PRIMARY KEY,
     last_read TIMESTAMP
