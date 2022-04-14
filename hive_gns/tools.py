@@ -1,6 +1,8 @@
 import datetime
 import decimal
+import os
 
+INSTALL_DIR = os.path.dirname(__file__)
 UTC_TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 def populate_by_schema(data, fields):
