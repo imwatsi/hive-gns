@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION gns.core_transfer( gns_op_id BIGINT, _created TIMESTAMP, _body TEXT )
+CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _created TIMESTAMP, _body TEXT, _notif_name VARCHAR(128) )
     RETURNS void
     LANGUAGE plpgsql
     VOLATILE AS $function$
@@ -9,6 +9,7 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( gns_op_id BIGINT, _created TIMESTA
             _amount BIGINT;
             _memo VARCHAR(2048);
             _currency VARCHAR(4);
+            _remark VARCHAR(500);
         BEGIN
             -- transfer_operation
             _from := _body::json->'value'->>'from';
@@ -26,7 +27,11 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( gns_op_id BIGINT, _created TIMESTA
                 _currency := 'HP';
             END IF;
 
+            _remark := 'you have received % % from %', _amount, _currency, _from;
+
             -- make notification entry
+            INSERT INTO gns.account_notifs (gns_op_id, account, module_name, notif_name, created, remark, payload)
+            VALUES (_gns_op_id, _to, 'core', _notif_name, _created, _remark, _body);
 
         END;
         $function$;

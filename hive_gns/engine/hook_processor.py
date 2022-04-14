@@ -18,7 +18,7 @@ class HookProcessorCore:
         res = {}
         for h in self.hooks:
             data = self.hooks[h]
-            res[(data[0])] = data[1]
+            res[(data[0])] = [h, data[1]]
         return res
     
     def _main_loop(self):
@@ -29,8 +29,10 @@ class HookProcessorCore:
                 op_types = self._get_op_types()
                 ops = GnsOps.get_ops_in_range(cur_gns_op_id+1, head_gns_op_id, op_types.keys())
                 for o in ops:
-                    func = op_types[o['op_type_id']]
-                    done = perform(func, [o['gns_op_id', 'created', 'body']])
+                    op_type_id = o['op_type_id']
+                    notif_name = op_types[op_type_id][0]
+                    func = op_types[op_type_id][1]
+                    done = perform(func, [o['gns_op_id'], o['created'], o['body'], notif_name])
                     # TODO: error notifications
                     # TODO: possibly shutdown module on error
                 GnsStatus.set_module_state(self.module, head_gns_op_id)
