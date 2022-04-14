@@ -1,4 +1,3 @@
 {
-    "hbd_transfer": [2, "gns.core_transfer"],
-    "hive_transfer": [2, "gns.core_transfer"]
+    "core_transfer": [2, "gns.core_transfer"]
 }
