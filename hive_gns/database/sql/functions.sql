@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION gns.ops( _first_block BIGINT, _last_block BIGINT )
+CREATE OR REPLACE FUNCTION gns.update_ops( _first_block BIGINT, _last_block BIGINT )
     RETURNS void
     LANGUAGE plpgsql
     VOLATILE AS $function$
@@ -10,11 +10,13 @@ CREATE OR REPLACE FUNCTION gns.ops( _first_block BIGINT, _last_block BIGINT )
             _hive_op_type_id SMALLINT;
             _transaction_id VARCHAR(40);
             _body TEXT;
+            _hash VARCHAR;
             _new_id BIGINT;
         BEGIN
             FOR temprow IN
                 SELECT
                     gnsov.id AS hive_opid,
+                    gnsov.op_type_id,
                     gnsov.block_num,
                     gnsov.timestamp,
                     gnsov.trx_in_block,
@@ -22,8 +24,7 @@ CREATE OR REPLACE FUNCTION gns.ops( _first_block BIGINT, _last_block BIGINT )
                 FROM hive.gns_operations_view gnsov
                 WHERE gnsov.block_num >= _first_block
                     AND gnsov.block_num <= _last_block
-                    AND gnsov.op_type_id = 18
-                ORDER BY gnsov.block_num, gnsov.id
+                ORDER BY gnsov.block_num, trx_in_block, gnsov.id
             LOOP
                 _hive_opid := temprow.hive_opid;
                 _block_num := temprow.block_num;
@@ -36,13 +37,20 @@ CREATE OR REPLACE FUNCTION gns.ops( _first_block BIGINT, _last_block BIGINT )
                 _hive_op_type_id := temprow.op_type_id;
                 _body := temprow.body;
 
-                INSERT INTO gns.ops(
-                    hive_opid, op_type_id, block_num, created, transaction_id, body)
-                VALUES
-                    (_hive_opid, _block_num, _block_timestamp, _transaction_id, _body);
-
+                WITH _ins AS (
+                    INSERT INTO gns.ops(
+                        hive_opid, op_type_id, block_num, created, transaction_id, body)
+                    VALUES
+                        (_hive_opid, _hive_op_type_id, _block_num, _block_timestamp, _transaction_id, _body)
+                    RETURNING gns_op_id
+                )
+                SELECT gns_op_id INTO _new_id FROM _ins;
             END LOOP;
-            UPDATE global_props SET (head_hive_opid, head_block_num, head_block_time) = (_hive_opid, _block_num, _block_timestamp);
+            UPDATE gns.global_props 
+            SET latest_block_num = _block_num,
+                latest_hive_rowid = _hive_opid,
+                latest_gns_op_id = _new_id,
+                latest_block_time = _block_timestamp;
         END;
         $function$;
 
