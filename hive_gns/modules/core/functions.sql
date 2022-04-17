@@ -14,10 +14,9 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _created TIMEST
             -- transfer_operation
             _from := _body::json->'value'->>'from';
             _to := _body::json->'value'->>'to';
-            _nai := _body::json->'value'->>'nai';
-            _amount := _body::json->'value'->>'amount';
+            _nai := (_body::json->'value'->>'amount')::json->>'nai';
+            _amount := (_body::json->'value'->>'amount')::json->>'amount';
             _memo := _body::json->'value'->>'memo';
-            _currency := 
 
             IF _nai = '@@000000013' THEN
                 _currency := 'HBD';
@@ -27,7 +26,12 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _created TIMEST
                 _currency := 'HP';
             END IF;
 
-            _remark := 'you have received % % from %', _amount, _currency, _from;
+            _remark := FORMAT('you have received %s %s from %s', _amount, _currency, _from);
+
+            -- check acount
+            INSERT INTO gns.accounts (account)
+            SELECT _to
+            WHERE NOT EXISTS (SELECT * FROM gns.accounts WHERE account = _to);
 
             -- make notification entry
             INSERT INTO gns.account_notifs (gns_op_id, account, module_name, notif_name, created, remark, payload)
