@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS gns.ops(
     op_type_id SMALLINT NOT NULL,
     block_num INTEGER NOT NULL,
     created TIMESTAMP,
-    transaction_id CHAR(40)
+    transaction_id CHAR(40),
     body TEXT
 ) INHERITS( hive.gns );
 
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS gns.account_prefs(
     subscriptions VARCHAR(128)[],
     subscriptions_opts JSON[],
     UNIQUE (account, app)
-) INHERITS( hive.gns );
+);
 
 CREATE TABLE IF NOT EXISTS gns.account_notifs(
     id BIGSERIAL PRIMARY KEY,
@@ -45,5 +45,5 @@ CREATE TABLE IF NOT EXISTS gns.account_notifs(
     notif_name VARCHAR(128) NOT NULL,
     created TIMESTAMP NOT NULL,
     remark VARCHAR(500) NOT NULL,
-    payload JSON
-) INHERITS( hive.gns );
+    payload VARCHAR NOT NULL
+);
