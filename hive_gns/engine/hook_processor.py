@@ -46,6 +46,7 @@ class HookProcessor:
                         func = op_types[op_type_id][1]
                         try:
                             done = perform(func, [o['gns_op_id'], o['created'], o['body'], notif_name])
+                            GnsStatus.set_module_state(self.module, o['gns_op_id'])
                         except:
                             # TODO: log
                             return
