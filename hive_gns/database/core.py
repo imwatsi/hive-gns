@@ -7,7 +7,17 @@ config = Config.config
 
 class DbSession:
     def __init__(self):
-        self.conn = psycopg2.connect(f"dbname={config['db_name']} user={config['db_username']} password={config['db_password']}")
+        self.conn = psycopg2.connect(
+            host=config['db_host'],
+            database=config['db_name'],
+            user=config['db_username'],
+            password=config['db_password'],
+            connect_timeout=3,
+            keepalives=1,
+            keepalives_idle=5,
+            keepalives_interval=2,
+            keepalives_count=2
+        )
         self.conn.autocommit = False
         self.cur = self.conn.cursor()
 
@@ -26,13 +36,12 @@ class DbSession:
     def get_query(self,sql, data):
         return self.cur.mogrify(sql,data)
 
-    def execute(self, sql, data):
+    def execute(self, sql, data=None):
         try:
             if data:
                 self.cur.execute(sql, data)
             else:
                 self.cur.execute(sql)
-
         except Exception as e:
             print(e)
             print(f"SQL:  {sql}")
@@ -48,12 +57,20 @@ class DbSetup:
 
     @classmethod
     def check_db(cls):
-        # check if it exists
         try:
-            # TODO: retrieve authentication from config 
-            cls.conn = psycopg2.connect(f"dbname={config['db_name']} user={config['db_username']} password={config['db_password']}")
+            cls.conn = psycopg2.connect(
+            host=config['db_host'],
+            database=config['db_name'],
+            user=config['db_username'],
+            password=config['db_password'],
+            connect_timeout=3,
+            keepalives=1,
+            keepalives_idle=5,
+            keepalives_interval=2,
+            keepalives_count=2
+        )
         except psycopg2.OperationalError as e:
-            if "haf" in e.args[0] and "does not exist" in e.args[0]:
+            if config['db_name'] in e.args[0] and "does not exist" in e.args[0]:
                 print(f"No database found. Please create a '{config['db_name']}' database in PostgreSQL.")
                 os._exit(1)
             else:
