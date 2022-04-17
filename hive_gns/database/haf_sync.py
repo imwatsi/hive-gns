@@ -9,7 +9,7 @@ from hive_gns.engine.hive import make_request
 from hive_gns.tools import range_split
 
 APPLICATION_CONTEXT = "gns"
-BATCH_PROCESS_SIZE = 10000
+BATCH_PROCESS_SIZE = 1000
 SOURCE_DIR = os.path.dirname(__file__) + "/sql"
 
 
@@ -100,7 +100,7 @@ class HafSync:
                         cls.db.select(f"SELECT gns.update_ops( {s[0]}, {s[1]} );")
                         cls.db.commit()
                         progress = int(((tot - (last_block - s[0])) / tot) * 100)
-                        print(f"HAF SYNC:: massive sync in progress: {s[0]} to {s[1]}    ({progress}) %)")
+                        print(f"HAF SYNC:: massive sync in progress: {s[0]} to {s[1]}    {progress} %")
                     cls.db.select(f"SELECT hive.app_context_attach( '{APPLICATION_CONTEXT}', {s[1]} );")
                     print("HAF SYNC:: massive sync done")
                     massive_sync = False
