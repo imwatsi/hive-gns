@@ -58,7 +58,9 @@ class GnsStatus:
     @classmethod
     def set_module_state(cls, module, latest_gns_op_id):
         sql = f"""
-            UPDATE gns.module_state SET latest_gns_op_id = {latest_gns_op_id};
+            UPDATE gns.module_state
+            SET latest_gns_op_id = {latest_gns_op_id}
+            WHERE module = '{module}';
         """
         done = write(sql)
         if done == False:
