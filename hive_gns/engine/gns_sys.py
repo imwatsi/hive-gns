@@ -18,7 +18,8 @@ class GnsOps:
             SELECT {fields} FROM gns.ops
             WHERE op_type_id = {_op_type_ids}
                 AND gns_op_id >= {lower}
-                AND gns_op_id <= {upper};
+                AND gns_op_id <= {upper}
+            ORDER BY gns_op_id ASC;
         """
         res = select(sql, GNS_OPS_FIELDS)
         return res
