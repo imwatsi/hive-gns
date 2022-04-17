@@ -106,9 +106,8 @@ class HafSync:
                     massive_sync = False
                     cls.safe_to_process = True
                     continue
-                cls.safe_to_process = False
+
                 cls.db.select(f"SELECT gns.update_ops( {first_block}, {last_block} );")
                 cls.db.commit()
-                cls.safe_to_process = True
                 print(f"HAF SYNC:: sync in progress: {first_block} to {last_block} ")
             time.sleep(0.2)
