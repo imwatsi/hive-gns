@@ -25,7 +25,7 @@ class GnsModules:
                 WHERE NOT EXISTS (SELECT * FROM gns.module_state WHERE module = '{m}');
             """
             write(sql)
-    
+
     def _load(self):
         dir = f'{INSTALL_DIR}/modules'
         module_list = [f.name for f in os.scandir(dir) if self._is_valid_module(f.name)]
