@@ -4,8 +4,8 @@ import os
 HOME_DIR = os.environ.get('HIVE_GNS_HOME') or "/etc/hive-gns"
 
 CONFIG_FIELDS = [
-    'db_name', 'db_username', 'db_password',
-    'server_host', 'server_port'
+    'db_host', 'db_name', 'db_username',
+    'db_password', 'server_host', 'server_port'
 ]
 
 
