@@ -1,9 +1,17 @@
-import datetime
+from datetime import datetime
 import decimal
 import os
 
 INSTALL_DIR = os.path.dirname(__file__)
 UTC_TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
+HIVE_NODES = [
+    "https://api.hive.blog",
+    "https://api.openhive.network",
+    "https://anyx.io",
+    "https://rpc.ausbit.dev",
+    "https://api.deathwing.me",
+    "https://hive-api.arcange.eu"
+]
 
 def populate_by_schema(data, fields):
     result = {}
