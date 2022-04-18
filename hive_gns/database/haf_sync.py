@@ -6,6 +6,7 @@ from hive_gns.config import Config
 
 from hive_gns.database.core import DbSession
 from hive_gns.engine.hive import make_request
+from hive_gns.server import system_status
 from hive_gns.tools import range_split
 
 APPLICATION_CONTEXT = "gns"
@@ -15,8 +16,6 @@ SOURCE_DIR = os.path.dirname(__file__) + "/sql"
 
 class HafSync:
     """Main HAF sync processes."""
-
-    safe_to_process = False
 
     @classmethod
     def init(cls):
@@ -75,6 +74,7 @@ class HafSync:
                 blocks_range = cls.db.select(f"SELECT * FROM hive.app_next_block('{APPLICATION_CONTEXT}');")[0]
                 (first_block, last_block) = blocks_range
                 if blocks_range is None or first_block is None:
+                    system_status.set_sync_status(f"synchronized")
                     time.sleep(0.2)
                     continue
 
@@ -101,13 +101,13 @@ class HafSync:
                         cls.db.commit()
                         progress = int(((tot - (last_block - s[0])) / tot) * 100)
                         print(f"HAF SYNC:: massive sync in progress: {s[0]} to {s[1]}    {progress} %")
+                        system_status.set_sync_status(f"massive sync in progress  {progress} %")
                     cls.db.select(f"SELECT hive.app_context_attach( '{APPLICATION_CONTEXT}', {s[1]} );")
                     print("HAF SYNC:: massive sync done")
                     massive_sync = False
-                    cls.safe_to_process = True
                     continue
 
                 cls.db.select(f"SELECT gns.update_ops( {first_block}, {last_block} );")
                 cls.db.commit()
-                print(f"HAF SYNC:: sync in progress: {first_block} to {last_block} ")
+                system_status.set_sync_status(f"synchronizing... on block {last_block}")
             time.sleep(0.2)
