@@ -1,0 +1,51 @@
+from datetime import datetime
+
+import uvicorn
+from fastapi import FastAPI
+from hive_gns.config import Config
+from hive_gns.server import system_status
+
+from hive_gns.server import system_status
+from hive_gns.tools import normalize_types, UTC_TIMESTAMP_FORMAT
+from hive_gns.server.api_metadata import TITLE, DESCRIPTION, VERSION, CONTACT, LICENSE, TAGS_METADATA
+
+config = Config.config
+
+app = FastAPI(
+    title=TITLE,
+    description=DESCRIPTION,
+    version=VERSION,
+    contact=CONTACT,
+    license_info=LICENSE,
+    openapi_tags=TAGS_METADATA,
+    openapi_url="/api/openapi.json"
+)
+
+@app.get('/', tags=['system'])
+async def root():
+    """Reports the status of Hive Global Notification System."""
+    report = {
+        'name': 'Hive Global Notification System',
+        'system': normalize_types(system_status.get_sys_status()),
+        'timestamp': datetime.utcnow().strftime(UTC_TIMESTAMP_FORMAT)
+    }
+    cur_time = datetime.strptime(report['timestamp'], UTC_TIMESTAMP_FORMAT)
+    sys_time = datetime.strptime(report['system']['block_time'], UTC_TIMESTAMP_FORMAT)
+    diff = cur_time - sys_time
+    if diff.seconds > 30:
+        health = "BAD"
+    else:
+        health = "GOOD"
+    report['health'] = health
+    return report
+
+def run_server():
+    """Run server."""
+    uvicorn.run(
+        "hive_gns.server.serve:app",
+        host=config['server_host'],
+        port=int(config['server_port']),
+        log_level="info",
+        reload=True,
+        workers=10
+    )
