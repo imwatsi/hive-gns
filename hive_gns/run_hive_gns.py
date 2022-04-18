@@ -6,6 +6,8 @@ from threading import Thread
 from hive_gns.database.access import write
 from hive_gns.database.haf_sync import HafSync
 from hive_gns.engine.hook_processor import HookProcessor
+from hive_gns.server import system_status
+from hive_gns.server.serve import run_server
 
 from hive_gns.tools import INSTALL_DIR
 
@@ -51,11 +53,12 @@ def run():
     HafSync.toggle_sync()
     Thread(target=HafSync.main_loop).start()
     # start GNS modules
-    while not HafSync.safe_to_process:
+    while not system_status.is_init():
         time.sleep(1)
     modules = GnsModules()
     modules.start()
     # run server
+    run_server()
 
 if __name__ == '__main__':
     run()
