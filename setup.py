@@ -13,7 +13,6 @@ setup(
     packages=find_packages(exclude=['scripts']),
     install_requires=[
         'psycopg2',
-        'requests',
         'fastapi',
         'uvicorn'
     ],
