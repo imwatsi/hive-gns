@@ -12,6 +12,7 @@ setup(
     long_description=open('README.md', 'r', encoding='UTF-8').read(),
     packages=find_packages(exclude=['scripts']),
     install_requires=[
+        'requests',
         'psycopg2',
         'fastapi',
         'uvicorn'
