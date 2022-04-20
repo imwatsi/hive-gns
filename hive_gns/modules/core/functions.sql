@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _created TIMESTAMP, _body TEXT, _notif_name VARCHAR(128) )
+CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _created TIMESTAMP, _body JSON, _notif_name VARCHAR(128) )
     RETURNS void
     LANGUAGE plpgsql
     VOLATILE AS $function$
@@ -12,11 +12,11 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _created TIMEST
             _remark VARCHAR(500);
         BEGIN
             -- transfer_operation
-            _from := _body::json->'value'->>'from';
-            _to := _body::json->'value'->>'to';
-            _nai := (_body::json->'value'->>'amount')::json->>'nai';
-            _amount := (_body::json->'value'->>'amount')::json->>'amount';
-            _memo := _body::json->'value'->>'memo';
+            _from := _body->'value'->>'from';
+            _to := _body->'value'->>'to';
+            _nai := (_body->'value'->>'amount')::json->>'nai';
+            _amount := (_body->'value'->>'amount')::json->>'amount';
+            _memo := _body->'value'->>'memo';
 
             IF _nai = '@@000000013' THEN
                 _currency := 'HBD';
