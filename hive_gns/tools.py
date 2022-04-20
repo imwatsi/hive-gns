@@ -1,6 +1,7 @@
 from datetime import datetime
 import decimal
 import os
+import re
 
 INSTALL_DIR = os.path.dirname(__file__)
 UTC_TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
@@ -56,3 +57,6 @@ def range_split(first, last, size):
         elif a < last:
             result.append((b,a))
             b = a+1
+
+def is_valid_hive_account(acc):
+    return bool(re.match(r'^[a-z][a-z0-9-.]{3,16}$', acc))
