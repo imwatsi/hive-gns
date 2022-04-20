@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION gns.update_ops( _first_block BIGINT, _last_block BIGI
             _block_timestamp TIMESTAMP;
             _hive_op_type_id SMALLINT;
             _transaction_id VARCHAR(40);
-            _body TEXT;
+            _body JSON;
             _hash VARCHAR;
             _new_id BIGINT;
         BEGIN
@@ -35,7 +35,7 @@ CREATE OR REPLACE FUNCTION gns.update_ops( _first_block BIGINT, _last_block BIGI
                     AND gnstv.trx_in_block = temprow.trx_in_block);
                 _transaction_id := encode(_hash::bytea, 'escape');
                 _hive_op_type_id := temprow.op_type_id;
-                _body := temprow.body;
+                _body := (temprow.body)::json;
 
                 WITH _ins AS (
                     INSERT INTO gns.ops(
@@ -53,4 +53,3 @@ CREATE OR REPLACE FUNCTION gns.update_ops( _first_block BIGINT, _last_block BIGI
                 latest_block_time = _block_timestamp;
         END;
         $function$;
-

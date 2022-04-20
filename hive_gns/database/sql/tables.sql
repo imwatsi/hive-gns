@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS gns.ops(
     block_num INTEGER NOT NULL,
     created TIMESTAMP,
     transaction_id CHAR(40),
-    body TEXT
+    body JSON
 ) INHERITS( hive.gns );
 
 CREATE TABLE IF NOT EXISTS gns.module_state(
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS gns.module_state(
 
 CREATE TABLE IF NOT EXISTS gns.accounts(
     account VARCHAR(16) PRIMARY KEY,
-    last_read TIMESTAMP
+    last_read TIMESTAMP DEFAULT NOW() - INTERVAL '7 DAYS'
 );
 
 CREATE TABLE IF NOT EXISTS gns.account_prefs(
@@ -45,5 +45,5 @@ CREATE TABLE IF NOT EXISTS gns.account_notifs(
     notif_name VARCHAR(128) NOT NULL,
     created TIMESTAMP NOT NULL,
     remark VARCHAR(500) NOT NULL,
-    payload VARCHAR NOT NULL
+    payload JSON NOT NULL
 );
