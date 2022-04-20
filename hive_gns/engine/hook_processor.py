@@ -49,7 +49,7 @@ class HookProcessor:
                     notif_name = op_types[op_type_id][0]
                     func = op_types[op_type_id][1]
                     try:
-                        done = perform(func, [o['gns_op_id'], o['created'], o['body'], notif_name])
+                        done = perform(func, [o['gns_op_id'], o['created'], json.dumps(o['body']), notif_name])
                         GnsStatus.set_module_state(self.module, o['gns_op_id'])
                     except:
                         # TODO: log
