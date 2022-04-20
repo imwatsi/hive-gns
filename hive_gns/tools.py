@@ -13,6 +13,12 @@ HIVE_NODES = [
     "https://hive-api.arcange.eu"
 ]
 
+NAI_MAP = {
+    'HBD': '@@000000013',
+    'HIVE': '@@000000021',
+    'HP': '@@000000037'
+}
+
 def populate_by_schema(data, fields):
     result = {}
     for i in range(len(fields)):
