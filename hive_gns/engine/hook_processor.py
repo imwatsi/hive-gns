@@ -44,6 +44,9 @@ class HookProcessor:
                 op_type_ids = self._get_op_type_ids(op_types.keys())
                 ops = GnsOps.get_ops_in_range(op_type_ids, cur_gns_op_id+1, head_gns_op_id)
                 tot = head_gns_op_id - cur_gns_op_id
+                if not ops:
+                    time.sleep(1)
+                    continue
                 for o in ops:
                     op_type_id = o['op_type_id']
                     notif_name = op_types[op_type_id][0]
