@@ -57,5 +57,12 @@ async def core_transfers(author:str, limit:int=None, currency:str=None, sender:s
             raise HTTPException(status_code=400, detail="sender must be a valid Hive account name; no more than 16 chars in length, may contain only 'a-z', '0-9', '-' and '.'")
     if '@' not in author:
         raise HTTPException(status_code=400, detail="missing '@' in author")
-    notifs = _get_transfers(author.replace('@', ''), limit, currency, sender, min_amount, max_amount, min_date.replace('T', ' '), max_date.replace('T', ' '), op_data)
+    if not is_valid_hive_account(author.replace('@', '')):
+        raise HTTPException(status_code=400, detail="invalid Hive account entered for 'author'")
+    if min_date:
+        min_date = min_date.replace('T', '')
+    if max_date:
+        max_date = max_date.replace('T', '')
+
+    notifs = _get_transfers(author.replace('@', ''), limit, currency, sender, min_amount, max_amount, min_date, max_date, op_data)
     return notifs or []
