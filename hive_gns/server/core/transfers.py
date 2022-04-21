@@ -60,9 +60,9 @@ async def core_transfers(author:str, limit:int=None, currency:str=None, sender:s
     if not is_valid_hive_account(author.replace('@', '')):
         raise HTTPException(status_code=400, detail="invalid Hive account entered for 'author'")
     if min_date:
-        min_date = min_date.replace('T', '')
+        min_date = min_date.replace('T', ' ')
     if max_date:
-        max_date = max_date.replace('T', '')
+        max_date = max_date.replace('T', ' ')
 
     notifs = _get_transfers(author.replace('@', ''), limit, currency, sender, min_amount, max_amount, min_date, max_date, op_data)
     return notifs or []
