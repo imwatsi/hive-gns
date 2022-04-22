@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _created TIMEST
             _from VARCHAR(16);
             _to VARCHAR(16);
             _nai VARCHAR(11);
-            _amount BIGINT;
+            _amount DOUBLE PRECISION;
             _memo VARCHAR(2048);
             _currency VARCHAR(4);
             _remark VARCHAR(500);
@@ -15,15 +15,17 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _created TIMEST
             _from := _body->'value'->>'from';
             _to := _body->'value'->>'to';
             _nai := (_body->'value'->>'amount')::json->>'nai';
-            _amount := (_body->'value'->>'amount')::json->>'amount';
             _memo := _body->'value'->>'memo';
 
             IF _nai = '@@000000013' THEN
                 _currency := 'HBD';
+                _amount := ((_body->'value'->>'amount')::json->>'amount')::float / 1000;
             ELSIF _nai = '@@000000021' THEN
                 _currency := 'HIVE';
+                _amount := ((_body->'value'->>'amount')::json->>'amount')::float / 1000;
             ELSIF _nai = '@@000000037' THEN
                 _currency := 'HP';
+                _amount := ((_body->'value'->>'amount')::json->>'amount')::float / 1000000;
             END IF;
 
             _remark := FORMAT('you have received %s %s from %s', _amount, _currency, _from);
