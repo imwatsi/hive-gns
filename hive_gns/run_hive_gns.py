@@ -1,11 +1,13 @@
 import os
 import re
+import sys
 import time
 from threading import Thread
 
 from hive_gns.database.access import write
 from hive_gns.database.haf_sync import HafSync
 from hive_gns.engine.hook_processor import HookProcessor
+from hive_gns.engine.pruner import Pruner
 from hive_gns.server import system_status
 from hive_gns.server.serve import run_server
 
@@ -15,7 +17,7 @@ class GnsModules:
 
     def __init__(self) -> None:
         self.modules = {}
-    
+
     def _is_valid_module(self, module):
         return bool(re.match(r'^[a-z]+[_]*$', module))
 
@@ -35,7 +37,7 @@ class GnsModules:
             if m not in self.modules:
                 self.modules[m] = HookProcessor(m)
         self._init_modules_db()
-    
+
     def _refresh_modules(self):
         # TODO: periodically run _load()
         while True:
@@ -48,17 +50,22 @@ class GnsModules:
             self.modules[m].start()
 
 def run():
-    # start  HAF sync
-    HafSync.init()
-    HafSync.toggle_sync()
-    Thread(target=HafSync.main_loop).start()
-    # start GNS modules
-    while not system_status.is_init():
-        time.sleep(1)
-    modules = GnsModules()
-    modules.start()
-    # run server
-    run_server()
+    try:
+        HafSync.init()
+        HafSync.toggle_sync()
+        Thread(target=HafSync.main_loop).start()
+        time.sleep(15)
+        Thread(target=Pruner.run_pruner).start()
+        # start GNS modules
+        while not system_status.is_init():
+            time.sleep(1)
+        modules = GnsModules()
+        modules.start()
+        # run server
+        run_server()
+    except KeyboardInterrupt:
+        # shutdown
+        sys.exit()
 
 if __name__ == '__main__':
     run()

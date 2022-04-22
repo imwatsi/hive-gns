@@ -33,6 +33,14 @@ def perform(func:str, params:list):
     except:
         return False
 
+def delete(sql:str):
+    try:
+        _write_db.execute(sql)
+        _write_db.commit()
+        return True
+    except:
+        return False
+
 def alter_schema(sql:str):
     _write_db.execute(sql)
     _write_db.commit()
