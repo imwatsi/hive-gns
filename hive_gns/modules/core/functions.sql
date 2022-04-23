@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _created TIMESTAMP, _body JSON, _notif_name VARCHAR(128) )
+CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _trx_id CHAR(40), _created TIMESTAMP, _body JSON, _notif_name VARCHAR(128) )
     RETURNS void
     LANGUAGE plpgsql
     VOLATILE AS $function$
@@ -36,8 +36,8 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _created TIMEST
             WHERE NOT EXISTS (SELECT * FROM gns.accounts WHERE account = _to);
 
             -- make notification entry
-            INSERT INTO gns.account_notifs (gns_op_id, account, module_name, notif_name, created, remark, payload)
-            VALUES (_gns_op_id, _to, 'core', _notif_name, _created, _remark, _body);
+            INSERT INTO gns.account_notifs (gns_op_id, trx_id, account, module_name, notif_name, created, remark, payload, verified)
+            VALUES (_gns_op_id, _trx_id, _to, 'core', _notif_name, _created, _remark, _body, true);
 
         END;
         $function$;
