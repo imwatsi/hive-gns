@@ -5,8 +5,14 @@ from threading import Thread
 from hive_gns.database.access import alter_schema, perform
 from hive_gns.engine.gns_sys import GnsOps, GnsStatus
 from hive_gns.database.haf_sync import HafSync
+from hive_gns.engine.verifications import ExternalVerifications
 from hive_gns.server import system_status
 from hive_gns.tools import INSTALL_DIR
+
+REQ_VERIFY = {
+    'splinterlands': ExternalVerifications.splinterlands
+}
+
 
 class HookProcessor:
 
@@ -52,7 +58,7 @@ class HookProcessor:
                     notif_name = op_types[op_type_id][0]
                     func = op_types[op_type_id][1]
                     try:
-                        done = perform(func, [o['gns_op_id'], o['created'], json.dumps(o['body']), notif_name])
+                        done = perform(func, [o['gns_op_id'], o['transaction_id'], o['created'], json.dumps(o['body']), notif_name])
                         GnsStatus.set_module_state(self.module, o['gns_op_id'])
                     except:
                         # TODO: log
@@ -60,6 +66,8 @@ class HookProcessor:
                     progress = int(((tot - (head_gns_op_id - o['gns_op_id'])) / tot) * 100)
                     system_status.set_module_status(self.module, f"synchronizing {progress}  %")
                 GnsStatus.set_module_state(self.module, head_gns_op_id)
+                if self.module in REQ_VERIFY:
+                    REQ_VERIFY[self.module]()
             system_status.set_module_status(self.module, 'synchronized')
             time.sleep(1)
 
