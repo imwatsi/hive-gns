@@ -36,7 +36,7 @@ class GnsModules:
         for m in module_list:
             if m not in self.modules:
                 self.modules[m] = HookProcessor(m)
-        self._init_modules_db()
+                self._init_modules_db()
 
     def _refresh_modules(self):
         # TODO: periodically run _load()

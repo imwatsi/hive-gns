@@ -19,34 +19,38 @@ class DbSession:
             keepalives_count=2
         )
         self.conn.autocommit = False
-        self.cur = self.conn.cursor()
 
     def select(self, sql):
-        self.cur.execute(sql)
-        res = self.cur.fetchall()
+        cur = self.conn.cursor()
+        try:
+            cur.execute(sql)
+            res = cur.fetchall()
+            cur.close()
+        except Exception as e:
+            print(e)
+            print(f"SQL:  {sql}")
+            self.conn.rollback()
+            cur.close()
+            raise Exception ('DB error occurred')
         if len(res) == 0:
             return None
         else:
             return res
 
-    def execute_immediate(self, sql,  data):
-        self.cur.execute(sql, data)
-        self.conn.commit()
-
-    def get_query(self,sql, data):
-        return self.cur.mogrify(sql,data)
-
-    def execute(self, sql, data=None):
+    def execute(self, sql,  data=None):
+        cur = self.conn.cursor()
         try:
             if data:
-                self.cur.execute(sql, data)
+                cur.execute(sql, data)
             else:
-                self.cur.execute(sql)
+                cur.execute(sql)
+            cur.close()
         except Exception as e:
             print(e)
             print(f"SQL:  {sql}")
             print(f"DATA:   {data}")
             self.conn.rollback()
+            cur.close()
             raise Exception ('DB error occurred')
 
     def commit(self):

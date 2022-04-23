@@ -8,7 +8,7 @@ def select(sql:str, schema:list):
     _res = _read_db.select(sql)
     res = []
     if _res:
-        assert len(schema) == len(_res[0])
+        assert len(schema) == len(_res[0]), 'invalid schema'
         for x in _res:
             res.append(populate_by_schema(x,schema))
         return normalize_types(res)
