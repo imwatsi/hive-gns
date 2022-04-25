@@ -7,9 +7,10 @@ from hive_gns.tools import NAI_MAP, is_valid_hive_account
 router_core_transfers = APIRouter()
 
 def _get_transfers(acc, limit=None, currency=None, sender=None, min_amount=None, max_amount=None, min_date=None, max_date=None, op_data=False):
-    fields = Fields.Core.get_transfers()
     if op_data:
-        fields.append('payload')
+        fields = Fields.Core.get_transfers(['payload'])
+    else:
+        fields = Fields.Core.get_transfers()
     _fields = ", ".join(fields)
     sql = f"""
         SELECT {_fields}
