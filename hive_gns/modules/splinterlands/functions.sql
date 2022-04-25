@@ -17,14 +17,14 @@ CREATE OR REPLACE FUNCTION gns.sm_token_transfer( _gns_op_id BIGINT, _trx_id CHA
 
             IF _op_id = 'sm_token_transfer' THEN
                 -- normal transfer_operation
-                _req_auths := ARRAY(SELECT json_array_elements_text((_body->'value'->>'required_auths'::json)));
+                _req_auths := ARRAY(SELECT json_array_elements_text((_body->'value'->'required_auths')));
                 _from := _req_auths[1];
                 _to := _body->'value'->'json'->>'to';
-                _qty := _body->'value'->'json'->>'qty'::float;
+                _qty := _body->'value'->'json'->'qty';
                 _memo := _body->'value'->'json'->>'memo';
                 _token := _body->'value'->'json'->>'token';
 
-                _remark := FORMAT('you have received %s %s from %s', _amount, _token, _from);
+                _remark := FORMAT('you have received %s %s from %s', _qty, _token, _from);
 
                 -- check acount
                 INSERT INTO gns.accounts (account)
