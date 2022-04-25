@@ -11,9 +11,9 @@ def _get_transfers(acc, limit=None, token=None, sender=None, min_amount=None, ma
         fields = Fields.Splinterlands.get_transfers(['payload'])
     else:
         fields = Fields.Splinterlands.get_transfers()
-    _fields = ", ".join(fields)
+    fields = ", ".join(fields)
     sql = f"""
-        SELECT {_fields}
+        SELECT {fields}
         FROM gns.account_notifs
         WHERE account = '{acc}'
         AND module_name = 'splinterlands'
