@@ -6,6 +6,7 @@ from hive_gns.config import Config
 from hive_gns.server import system_status
 from hive_gns.server.api_metadata import TITLE, DESCRIPTION, VERSION, CONTACT, LICENSE, TAGS_METADATA
 from hive_gns.server.core.transfers import router_core_transfers
+from hive_gns.server.splinterlands.transfers import router_splinterlands_transfers
 from hive_gns.tools import normalize_types, UTC_TIMESTAMP_FORMAT
 
 config = Config.config
@@ -21,6 +22,7 @@ app = FastAPI(
 )
 
 app.include_router(router_core_transfers)
+app.include_router(router_splinterlands_transfers)
 
 @app.get('/', tags=['system'])
 async def root():
@@ -39,6 +41,18 @@ async def root():
         health = "GOOD"
     report['health'] = health
     return report
+
+
+# top level account endpoints
+
+@app.get('/api/{author}', tags=['accounts'])
+async def author_settings(author:str):
+    pass
+
+@app.get('/api/{author}/notifications')
+async def author_notifications(author:str):
+    pass
+
 
 def run_server():
     """Run server."""
