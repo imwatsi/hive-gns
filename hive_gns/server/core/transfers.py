@@ -43,7 +43,7 @@ def _get_transfers(acc, limit=None, currency=None, sender=None, min_amount=None,
     return res
 
 @router_core_transfers.get("/api/{author}/core/transfers", tags=['core'])
-async def core_transfers(author:str, limit:int=None, currency:str=None, sender:str=None, min_amount:int=None, max_amount:int=None, min_date:str=None, max_date:str=None, op_data=False):
+async def core_transfers(author:str, limit:int=None, currency:str=None, sender:str=None, min_amount:int=None, max_amount:int=None, min_date:str=None, max_date:str=None, op_data:bool=False):
     if limit and not isinstance(limit, int):
         raise HTTPException(status_code=400, detail="limit param must be an integer")
     if currency:
