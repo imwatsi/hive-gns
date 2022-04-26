@@ -11,9 +11,9 @@ def _get_transfers(acc, limit=None, currency=None, sender=None, min_amount=None,
         fields = Fields.Core.get_transfers(['payload'])
     else:
         fields = Fields.Core.get_transfers()
-    fields = ", ".join(fields)
+    _fields = ", ".join(fields)
     sql = f"""
-        SELECT {fields}
+        SELECT {_fields}
         FROM gns.account_notifs
         WHERE account = '{acc}'
         AND module_name = 'core'
