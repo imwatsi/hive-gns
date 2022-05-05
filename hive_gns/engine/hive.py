@@ -52,6 +52,7 @@ def make_request(method, params=[]):
             if 'result' in result:
                 return result['result']
             elif 'error' in result:
+                print(result)
                 return None
             else:
                 time.sleep(0.1)
