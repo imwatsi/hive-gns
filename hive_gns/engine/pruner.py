@@ -8,7 +8,7 @@ class Pruner:
     def delete_old_ops(cls):
         sql = f"""
             DELETE FROM gns.ops
-            WHERE created <= NOW() - INTERVAL '7 DAYS';
+            WHERE created <= NOW() - INTERVAL '30 DAYS';
         """
         return delete(sql)
 
