@@ -52,6 +52,7 @@ class HookProcessor:
                 tot = head_gns_op_id - cur_gns_op_id
                 if not ops:
                     time.sleep(1)
+                    GnsStatus.set_module_state(self.module, head_gns_op_id)
                     continue
                 for o in ops:
                     op_type_id = o['op_type_id']
