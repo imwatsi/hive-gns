@@ -13,7 +13,7 @@ class GnsOps:
     @classmethod
     def get_ops_in_range(cls, op_type_ids, lower, upper):
         fields = ", ".join(GNS_OPS_FIELDS)
-        _op_type_ids = ", AND op_type_id = ".join(op_type_ids)
+        _op_type_ids = " AND op_type_id = ".join(op_type_ids)
         sql = f"""
             SELECT {fields} FROM gns.ops
             WHERE op_type_id = {_op_type_ids}
