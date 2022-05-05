@@ -1,3 +1,4 @@
 {
-    "core_transfer": [2, "gns.core_transfer"]
+    "core_transfer": [2, "gns.core_transfer"],
+    "prefs_update": [43, "gns.core_gns_prefs"]
 }
