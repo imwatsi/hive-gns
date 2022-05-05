@@ -25,7 +25,10 @@ CREATE TABLE IF NOT EXISTS gns.module_state(
 
 CREATE TABLE IF NOT EXISTS gns.accounts(
     account VARCHAR(16) PRIMARY KEY,
-    last_read TIMESTAMP DEFAULT NOW() - INTERVAL '7 DAYS'
+    last_reads JSON DEFAULT '{}'::json,
+    prefs JSON DEFAULT '{}'::json,
+    prefs_updated TIMESTAMP,
+    prefs_flag BOOLEAN DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS gns.account_prefs(
