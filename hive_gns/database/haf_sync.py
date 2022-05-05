@@ -62,8 +62,7 @@ class HafSync:
     @classmethod
     def get_oldest_block_num(cls):
         glob_props = make_request("condenser_api.get_dynamic_global_properties")
-        #return glob_props['head_block_number'] - 201600
-        return glob_props['head_block_number'] - 14400
+        return glob_props['head_block_number'] - (86400 * 30) # 30 days
 
     @classmethod
     def main_loop(cls):
@@ -74,7 +73,7 @@ class HafSync:
                 blocks_range = cls.db.select(f"SELECT * FROM hive.app_next_block('{APPLICATION_CONTEXT}');")[0]
                 (first_block, last_block) = blocks_range
                 if blocks_range is None or first_block is None:
-                    system_status.set_sync_status(f"synchronized")
+                    system_status.set_sync_status("synchronized")
                     time.sleep(0.2)
                     continue
 
