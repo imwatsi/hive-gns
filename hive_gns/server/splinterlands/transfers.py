@@ -4,6 +4,9 @@ from hive_gns.database.access import select
 from hive_gns.server.fields import Fields
 from hive_gns.tools import is_valid_hive_account
 
+MODULE_NAME = 'splinterlands'
+NOTIF_NAME = 'sm_token_transfer'
+
 router_splinterlands_transfers = APIRouter()
 
 def _get_transfers(acc, limit=None, token=None, sender=None, min_amount=None, max_amount=None, min_date=None, max_date=None, op_data=False):
@@ -16,10 +19,10 @@ def _get_transfers(acc, limit=None, token=None, sender=None, min_amount=None, ma
         SELECT {_fields}
         FROM gns.account_notifs
         WHERE account = '{acc}'
-        AND module_name = 'splinterlands'
-        AND notif_name = 'sm_token_transfer'
+        AND module_name = '{MODULE_NAME}'
+        AND notif_name = '{NOTIF_NAME}'
         AND created > (
-            SELECT last_read FROM gns.accounts
+            SELECT COALESCE(last_reads->'{MODULE_NAME}'->>'{NOTIF_NAME}'::timestamp, NOW() - INTERVAL '30 DAYS')
             WHERE account = '{acc}'
         )
     """
