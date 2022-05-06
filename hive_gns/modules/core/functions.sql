@@ -52,20 +52,16 @@ CREATE OR REPLACE FUNCTION gns.core_gns_prefs( _gns_op_id BIGINT, _trx_id CHAR(4
             _gns_key BOOLEAN;
             _data JSON;
         BEGIN
-            -- transfer_operation
             _acc := _body->'value'->>'account';
-            _metadata := _body->'value'->>'posting_json_metadata'::json;
-            _gns_key := (_metadata->'gns' IS NOT NULL);
-            IF _gns_key = true THEN
-                _data := _metadata->'gns'::json;
-                IF _data IS NOT NULL THEN
-                    -- check acount
-                    INSERT INTO gns.accounts (account)
-                    SELECT _acc
-                    WHERE NOT EXISTS (SELECT * FROM gns.accounts WHERE account = _acc);
-                    -- update account's prefs and set prefs_updated
-                    UPDATE gns.accounts SET prefs = _data, prefs_updated = _created WHERE account = _acc;
-                END IF;
+            _metadata := _body->'value'->>'posting_json_metadata';
+            _data := _metadata->'gns';
+            IF _data IS NOT NULL THEN
+                -- check acount
+                INSERT INTO gns.accounts (account)
+                SELECT _acc
+                WHERE NOT EXISTS (SELECT * FROM gns.accounts WHERE account = _acc);
+                -- update account's prefs and set prefs_updated
+                UPDATE gns.accounts SET prefs = _data, prefs_updated = _created WHERE account = _acc;
             END IF;
         END;
         $function$;
