@@ -61,8 +61,9 @@ class HookProcessor:
                     try:
                         done = perform(func, [o['gns_op_id'], o['transaction_id'], o['created'], json.dumps(o['body']), notif_name])
                         GnsStatus.set_module_state(self.module, o['gns_op_id'])
-                    except:
+                    except Exception as e:
                         # TODO: log
+                        print(e)
                         return
                     progress = int(((tot - (head_gns_op_id - o['gns_op_id'])) / tot) * 100)
                     system_status.set_module_status(self.module, f"synchronizing {progress}  %")
