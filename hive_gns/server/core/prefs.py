@@ -3,6 +3,7 @@ from hive_gns.database.access import select
 from hive_gns.server.fields import Fields
 
 from hive_gns.server.system_status import get_module_list
+from hive_gns.tools import is_valid_hive_account
 
 router_core_prefs = APIRouter()
 
@@ -22,5 +23,9 @@ def _get_preferences(account, module=None):
 def account_preferences(account:str, module:str = None):
     if module and module not in get_module_list():
         raise HTTPException(status_code=400, detail="the module is not valid or is unavailable at the moment")
+    if '@' not in account:
+        raise HTTPException(status_code=400, detail="missing '@' in account")
+    if not is_valid_hive_account(account.replace('@', '')):
+        raise HTTPException(status_code=400, detail="invalid Hive account entered for 'account'")
     prefs = _get_preferences(account, module)
     return prefs or {}
