@@ -25,7 +25,7 @@ class AccountsPrefs:
             if acc['posting_json_metadata'] == '':
                 posting_json = {}
             else:
-                json.loads(acc['posting_json_metadata'])
+                posting_json = json.loads(acc['posting_json_metadata'])
             updated = datetime.strftime(datetime.utcnow(), UTC_TIMESTAMP_FORMAT)
             if 'gns' in posting_json:
                 AccountsCache.account_prefs[acc['name']] = posting_json['gns']
