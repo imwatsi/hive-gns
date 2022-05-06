@@ -10,7 +10,7 @@ from hive_gns.server import system_status
 from hive_gns.tools import range_split
 
 APPLICATION_CONTEXT = "gns"
-BATCH_PROCESS_SIZE = 200000
+BATCH_PROCESS_SIZE = 100000
 SOURCE_DIR = os.path.dirname(__file__) + "/sql"
 
 
