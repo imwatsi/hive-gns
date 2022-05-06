@@ -62,7 +62,7 @@ class HafSync:
     @classmethod
     def get_oldest_block_num(cls):
         glob_props = make_request("condenser_api.get_dynamic_global_properties")
-        return glob_props['head_block_number'] - (86400 * 0.1) # * 30 for 30 days
+        return glob_props['head_block_number'] - int(86400 * 0.1) # * 30 for 30 days
 
     @classmethod
     def main_loop(cls):
