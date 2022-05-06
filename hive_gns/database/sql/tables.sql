@@ -31,15 +31,6 @@ CREATE TABLE IF NOT EXISTS gns.accounts(
     prefs_flag BOOLEAN DEFAULT false
 );
 
-CREATE TABLE IF NOT EXISTS gns.account_prefs(
-    gns_op_id BIGINT NOT NULL UNIQUE REFERENCES gns.ops(gns_op_id) ON DELETE CASCADE DEFERRABLE,
-    account VARCHAR(16) NOT NULL REFERENCES gns.accounts(account) ON DELETE CASCADE,
-    app VARCHAR(64) NOT NULL,
-    subscriptions VARCHAR(128)[],
-    subscriptions_opts JSON[],
-    UNIQUE (account, app)
-);
-
 CREATE TABLE IF NOT EXISTS gns.account_notifs(
     id BIGSERIAL PRIMARY KEY,
     gns_op_id BIGINT NOT NULL UNIQUE REFERENCES gns.ops(gns_op_id) ON DELETE CASCADE DEFERRABLE,
