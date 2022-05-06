@@ -21,6 +21,11 @@ def set_module_status(mod, status):
     global modules
     modules[mod] = status
 
+def get_module_list():
+    res = [k for (k,v) in modules]
+    return res
+
+
 def get_sys_status():
     global sync
     cur = GnsStatus.get_global_latest_state()
