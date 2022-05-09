@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS gns.module_state(
 
 CREATE TABLE IF NOT EXISTS gns.accounts(
     account VARCHAR(16) PRIMARY KEY,
-    last_reads JSON DEFAULT '{}'::json,
+    last_reads JSON DEFAULT FORMAT('{"all": "%s"}', timezone('UTC', now()) - '30 days'::interval)::json,
     prefs JSON DEFAULT '{}'::json,
     prefs_updated TIMESTAMP,
     prefs_flag BOOLEAN DEFAULT false
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS gns.account_notifs(
     trx_id CHAR(40),
     account VARCHAR(16) NOT NULL REFERENCES gns.accounts(account) ON DELETE CASCADE DEFERRABLE,
     module_name VARCHAR(128) NOT NULL,
-    notif_name VARCHAR(128) NOT NULL,
+    notif_code VARCHAR(3) NOT NULL,
     created TIMESTAMP NOT NULL,
     remark VARCHAR(500) NOT NULL,
     payload JSON NOT NULL,
