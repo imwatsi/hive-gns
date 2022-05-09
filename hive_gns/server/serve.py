@@ -1,13 +1,14 @@
-from datetime import datetime
-
 import uvicorn
+
+from datetime import datetime
 from fastapi import FastAPI
+
 from hive_gns.config import Config
 from hive_gns.server import system_status
 from hive_gns.server.api_metadata import TITLE, DESCRIPTION, VERSION, CONTACT, LICENSE, TAGS_METADATA
 from hive_gns.server.core.transfers import router_core_transfers
 from hive_gns.server.splinterlands.transfers import router_splinterlands_transfers
-from hive_gns.server.core.prefs import router_core_prefs
+from hive_gns.server.core.accounts import router_core_accounts
 from hive_gns.tools import normalize_types, UTC_TIMESTAMP_FORMAT
 
 config = Config.config
@@ -24,7 +25,7 @@ app = FastAPI(
 
 app.include_router(router_core_transfers)
 app.include_router(router_splinterlands_transfers)
-app.include_router(router_core_prefs)
+app.include_router(router_core_accounts)
 
 @app.get('/', tags=['system'])
 async def root():
@@ -43,15 +44,6 @@ async def root():
         health = "GOOD"
     report['health'] = health
     return report
-
-
-# top level account endpoints
-
-
-@app.get('/api/{accontu}/notifications')
-async def author_notifications(account:str):
-    pass
-
 
 def run_server():
     """Run server."""
