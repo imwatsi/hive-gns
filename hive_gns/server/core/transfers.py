@@ -45,8 +45,8 @@ def _get_transfers(acc, limit=None, currency=None, sender=None, min_amount=None,
     res = select(sql, fields)
     return res
 
-@router_core_transfers.get("/api/{author}/core/transfers", tags=['core'])
-async def core_transfers(author:str, limit:int=None, currency:str=None, sender:str=None, min_amount:int=None, max_amount:int=None, min_date:str=None, max_date:str=None, op_data:bool=False):
+@router_core_transfers.get("/api/{account}/core/transfers", tags=['core'])
+async def core_transfers(account:str, limit:int=None, currency:str=None, sender:str=None, min_amount:int=None, max_amount:int=None, min_date:str=None, max_date:str=None, op_data:bool=False):
     if limit and not isinstance(limit, int):
         raise HTTPException(status_code=400, detail="limit param must be an integer")
     if currency:
@@ -59,14 +59,14 @@ async def core_transfers(author:str, limit:int=None, currency:str=None, sender:s
             raise HTTPException(status_code=400, detail="sender param must be a string")
         if not is_valid_hive_account(sender):
             raise HTTPException(status_code=400, detail="sender must be a valid Hive account name; no more than 16 chars in length, may contain only 'a-z', '0-9', '-' and '.'")
-    if '@' not in author:
-        raise HTTPException(status_code=400, detail="missing '@' in author")
-    if not is_valid_hive_account(author.replace('@', '')):
-        raise HTTPException(status_code=400, detail="invalid Hive account entered for 'author'")
+    if '@' not in account:
+        raise HTTPException(status_code=400, detail="missing '@' in account")
+    if not is_valid_hive_account(account.replace('@', '')):
+        raise HTTPException(status_code=400, detail="invalid Hive account entered")
     if min_date:
         min_date = min_date.replace('T', ' ')
     if max_date:
         max_date = max_date.replace('T', ' ')
 
-    notifs = _get_transfers(author.replace('@', ''), limit, currency, sender, min_amount, max_amount, min_date, max_date, op_data)
+    notifs = _get_transfers(account.replace('@', ''), limit, currency, sender, min_amount, max_amount, min_date, max_date, op_data)
     return notifs or []
