@@ -73,7 +73,7 @@ CREATE OR REPLACE FUNCTION gns.update_module( _module VARCHAR(128), _code VARCHA
                     WHERE op_type_id = {_op_type_ids}
                     AND gns_op_id >= _start_gns_op_id
                     AND gns_op_id <= _end_gns_op_id
-                ORDER BY gns_op_id ASC;
+                ORDER BY gns_op_id ASC
                 LOOP
                     _code := _hooks->op_type_id->>'code';
                     SELECT FORMAT('%s ( %s, %s, %s, %s, %s)', _funct, gns_op_id, transaction_id, created, body, _code);
