@@ -20,8 +20,9 @@ CREATE TABLE IF NOT EXISTS gns.ops(
 
 CREATE TABLE IF NOT EXISTS gns.module_state(
     module VARCHAR(64) PRIMARY KEY,
+    hooks JSON,
     latest_gns_op_id BIGINT DEFAULT 0
-);
+)
 
 CREATE TABLE IF NOT EXISTS gns.accounts(
     account VARCHAR(16) PRIMARY KEY,
@@ -36,7 +37,7 @@ CREATE TABLE IF NOT EXISTS gns.account_notifs(
     gns_op_id BIGINT NOT NULL UNIQUE REFERENCES gns.ops(gns_op_id) ON DELETE CASCADE DEFERRABLE,
     trx_id CHAR(40),
     account VARCHAR(16) NOT NULL REFERENCES gns.accounts(account) ON DELETE CASCADE DEFERRABLE,
-    module_name VARCHAR(128) NOT NULL,
+    module_name VARCHAR(64) NOT NULL,
     notif_code VARCHAR(3) NOT NULL,
     created TIMESTAMP NOT NULL,
     remark VARCHAR(500) NOT NULL,
