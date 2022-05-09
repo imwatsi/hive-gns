@@ -28,16 +28,17 @@ Study the default `/hive_gns/modules/core/hooks.json` to learn how to format you
 
 ```
 {
-    "hbd_transfer": [2, "gns.core_transfer"],
-    "hive_transfer": [2, "gns.core_transfer"]
+    "core_transfer": [2, "gns.core_transfer", "trn"],
+    "gns": [18, "gns.core_gns", "prf"]
 }
 ```
 
 - main container is a JSON object
 - each key defines your notification type
 - within each element is an array, containing:
-    - the corresponding HAF operation ID for the operation that triggers the notification
+    - the corresponding HAF operation ID for the notification handler
     - name of the SQL function that handles the body of the operation
+    - a 3 character code for the notification handler
 
-`[ hive_op_id <int>, sql_function <str> ]`
+`[ hive_op_id <int>, sql_function <str>, notif_code <str(3)> ]`
 
