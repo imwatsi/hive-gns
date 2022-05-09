@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION gns.sm_token_transfer( _gns_op_id BIGINT, _trx_id CHAR(40), _created TIMESTAMP, _body JSON, _notif_name VARCHAR(128) )
+CREATE OR REPLACE FUNCTION gns.sm_token_transfer( _gns_op_id BIGINT, _trx_id CHAR(40), _created TIMESTAMP, _body JSON, _notif_code VARCHAR(3) )
     RETURNS void
     LANGUAGE plpgsql
     VOLATILE AS $function$
@@ -32,8 +32,8 @@ CREATE OR REPLACE FUNCTION gns.sm_token_transfer( _gns_op_id BIGINT, _trx_id CHA
                 WHERE NOT EXISTS (SELECT * FROM gns.accounts WHERE account = _to);
 
                 -- make notification entry
-                INSERT INTO gns.account_notifs (gns_op_id, trx_id, account, module_name, notif_name, created, remark, payload)
-                VALUES (_gns_op_id, _trx_id, _to, 'splinterlands', _notif_name, _created, _remark, _body);
+                INSERT INTO gns.account_notifs (gns_op_id, trx_id, account, module_name, notif_code, created, remark, payload)
+                VALUES (_gns_op_id, _trx_id, _to, 'splinterlands', _notif_code, _created, _remark, _body);
             END IF;
         EXCEPTION WHEN OTHERS THEN
                 RAISE NOTICE E'Got exception:
