@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _trx_id CHAR(40), _created TIMESTAMP, _body JSON, _notif_name VARCHAR(128) )
+CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _trx_id CHAR(40), _created TIMESTAMP, _body JSON, _notif_code VARCHAR(3) )
     RETURNS void
     LANGUAGE plpgsql
     VOLATILE AS $function$
@@ -10,6 +10,8 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _trx_id CHAR(40
             _memo VARCHAR(2048);
             _currency VARCHAR(4);
             _remark VARCHAR(500);
+            _read TIMESTAMP;
+            _read_json JSON;
         BEGIN
             -- transfer_operation
             _from := _body->'value'->>'from';
@@ -36,32 +38,43 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _trx_id CHAR(40
             WHERE NOT EXISTS (SELECT * FROM gns.accounts WHERE account = _to);
 
             -- make notification entry
-            INSERT INTO gns.account_notifs (gns_op_id, trx_id, account, module_name, notif_name, created, remark, payload, verified)
-            VALUES (_gns_op_id, _trx_id, _to, 'core', _notif_name, _created, _remark, _body, true);
+            INSERT INTO gns.account_notifs (gns_op_id, trx_id, account, module_name, notif_code, created, remark, payload, verified)
+            VALUES (_gns_op_id, _trx_id, _to, 'core', _notif_code, _created, _remark, _body, true);
 
         END;
         $function$;
 
-CREATE OR REPLACE FUNCTION gns.core_gns_prefs( _gns_op_id BIGINT, _trx_id CHAR(40), _created TIMESTAMP, _body JSON, _notif_name VARCHAR(128) )
+CREATE OR REPLACE FUNCTION gns.core_gns( _gns_op_id BIGINT, _trx_id CHAR(40), _created TIMESTAMP, _body JSON, _notif_name VARCHAR(128) )
     RETURNS void
     LANGUAGE plpgsql
     VOLATILE AS $function$
         DECLARE
+            _req_auths VARCHAR(16)[];
             _acc VARCHAR(16);
-            _metadata JSON;
-            _gns_key BOOLEAN;
+            _op_id VARCHAR;
+            _payload JSON;
+            _op_name VARCHAR;
             _data JSON;
         BEGIN
-            _acc := _body->'value'->>'account';
-            _metadata := _body->'value'->>'posting_json_metadata';
-            _data := _metadata->'gns';
-            IF _data IS NOT NULL THEN
-                -- check acount
-                INSERT INTO gns.accounts (account)
-                SELECT _acc
-                WHERE NOT EXISTS (SELECT * FROM gns.accounts WHERE account = _acc);
-                -- update account's prefs and set prefs_updated
-                UPDATE gns.accounts SET prefs = _data, prefs_updated = _created WHERE account = _acc;
+            _op_id := _body->'value'->>'id';
+
+            IF _op_id = 'gns' THEN
+                _req_auths := ARRAY(SELECT json_array_elements_text((_body->'value'->'required_auths')));
+                _acc := _req_auths[1];
+                _payload := (_body->'value'->>'json')::json;
+                _op_name := _payload->0;
+                _data := _payload->1::json;
+                -- update preferences
+                IF _op_name = 'prefs' THEN
+                    IF _data IS NOT NULL THEN
+                        -- check acount
+                        INSERT INTO gns.accounts (account)
+                        SELECT _acc
+                        WHERE NOT EXISTS (SELECT * FROM gns.accounts WHERE account = _acc);
+                        -- update account's prefs and set prefs_updated
+                        UPDATE gns.accounts SET prefs = _data, prefs_updated = _created WHERE account = _acc;
+                    END IF;
+                END IF;
             END IF;
         END;
         $function$;
