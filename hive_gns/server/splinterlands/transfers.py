@@ -9,7 +9,7 @@ NOTIF_NAME = 'sm_token_transfer'
 
 router_splinterlands_transfers = APIRouter()
 
-def _get_transfers(acc, limit=None, token=None, sender=None, min_amount=None, max_amount=None, min_date=None, max_date=None, op_data=False):
+def _get_transfers(acc, limit, token=None, sender=None, min_amount=None, max_amount=None, min_date=None, max_date=None, op_data=False):
     if op_data:
         fields = Fields.Splinterlands.get_transfers(['payload'])
     else:
@@ -38,14 +38,12 @@ def _get_transfers(acc, limit=None, token=None, sender=None, min_amount=None, ma
         sql += f"AND created >= '{min_date}'"
     if max_date:
         sql += f"AND created <= '{max_date}'"
-    sql += "ORDER BY created DESC "
-    if limit:
-        sql += f"LIMIT {limit}"
+    sql += f"ORDER BY created DESC LIMIT {limit}"
     res = select(sql, fields)
     return res
 
 @router_splinterlands_transfers.get("/api/{account}/splinterlands/transfers", tags=['splinterlands'])
-async def core_transfers(account:str, limit:int=None, currency:str=None, sender:str=None, min_amount:int=None, max_amount:int=None, min_date:str=None, max_date:str=None, op_data:bool=False):
+async def core_transfers(account:str, limit:int=100, currency:str=None, sender:str=None, min_amount:int=None, max_amount:int=None, min_date:str=None, max_date:str=None, op_data:bool=False):
     if limit and not isinstance(limit, int):
         raise HTTPException(status_code=400, detail="limit param must be an integer")
     if currency:
