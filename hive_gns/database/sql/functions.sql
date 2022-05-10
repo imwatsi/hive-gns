@@ -92,3 +92,36 @@ CREATE OR REPLACE FUNCTION gns.update_module( _module VARCHAR(128), _start_gns_o
                 SQLERRM: %', SQLSTATE, SQLERRM;
         END;
     $function$;
+
+CREATE OR REPLACE FUNCTION gns.account_check_notif( _account VARCHAR(16), _module VARCHAR(128), _notif_code VARCHAR(3))
+    RETURNS BOOLEAN
+    LANGUAGE plpgsql
+    VOLATILE AS $function$
+        DECLARE
+            temprow RECORD;
+            _prefs JSON;
+            _module_prefs JSON;
+            _notifs_enabled VARCHAR(3)[];
+            _op_ids INT[];
+        BEGIN
+            SELECT prefs INTO _prefs FROM gns.accounts WHERE account = _account;
+
+            _module_prefs := _prefs->_module;
+            IF _module_prefs IS NULL THEN
+                RETURN false;
+            ELSIF _module_prefs->'enabled' = '*' THEN
+                RETURN true;
+            END IF;
+
+            _notifs_enabled := _module_prefs->'enabled';
+            IF _notif_code = ANY (_notifs_enabled) THEN
+                RETURN true;
+            ELSE
+                RETURN false;
+            END IF;
+        EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE E'Got exception:
+                SQLSTATE: % 
+                SQLERRM: %', SQLSTATE, SQLERRM;
+        END;
+    $function$;
