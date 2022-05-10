@@ -109,11 +109,11 @@ CREATE OR REPLACE FUNCTION gns.account_check_notif( _account VARCHAR(16), _modul
             _module_prefs := _prefs->_module;
             IF _module_prefs IS NULL THEN
                 RETURN false;
-            ELSIF _module_prefs->'enabled' = '*' THEN
+            ELSIF _module_prefs->>'enabled' = '*' THEN
                 RETURN true;
             END IF;
 
-            _notifs_enabled := _module_prefs->'enabled';
+            _notifs_enabled := ARRAY(SELECT json_array_elements_text(_module_prefs->'enabled'));
             IF _notif_code = ANY (_notifs_enabled) THEN
                 RETURN true;
             ELSE
