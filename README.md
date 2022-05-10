@@ -18,9 +18,9 @@ GNS is a global notification system for dApps on the Hive Blockchain. It utilize
 
 ## Documentation
 
+- [GNS Broadcast Ops](/docs/broadcast_ops.md)
 - [Integrating New Notifications](/docs/integration.md)
 - [HAF Internal Op IDs](/docs/haf_op_ids.md)
-- [GNS Broadcast Ops](/docs/broadcast_ops.md)
 
 ---
 
@@ -32,39 +32,39 @@ GNS is a global notification system for dApps on the Hive Blockchain. It utilize
 
 **Currency:**
 
-[x] HIVE/HBD transfers
-[ ] Power up
-[ ] Power down
-[ ] Vest withdrawals
-[ ] Delegations received
-[ ] Delegations removed
+- [x] HIVE/HBD transfers
+- [ ] Power up
+- [ ] Power down
+- [ ] Vest withdrawals
+- [ ] Delegations received
+- [ ] Delegations removed
 
 **Social Interactions:**
 
-[ ] Votes
-[ ] Comments
-[ ] Reblogs
-[ ] Follows
-[ ] Unfollows
-[ ] Mentions
+- [ ] Votes
+- [ ] Comments
+- [ ] Reblogs
+- [ ] Follows
+- [ ] Unfollows
+- [ ] Mentions
 
 **Comunities (WIP):**
 
-[ ] Subscribe
-[ ] Unsubscribe
-[ ] Role assignment
-[ ] Properties update
-[ ] Post mute
-[ ] Post unmute
+- [ ] Subscribe
+- [ ] Unsubscribe
+- [ ] Role assignment
+- [ ] Properties update
+- [ ] Post mute
+- [ ] Post unmute
 
 ---
 
 ### Splinterlands (WIP)
 
-[x] DEC transfers
+- [x] DEC transfers
 
 ---
 
 ### Hive Engine (WIP)
 
-[ ] Token transfers
+- [ ] Token transfers
