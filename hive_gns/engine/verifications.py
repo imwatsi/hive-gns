@@ -9,7 +9,7 @@ class ExternalVerifications:
             SELECT id, trx_id FROM gns.account_notifs
             WHERE verified IS NULL;
         """
-        notifications = select(sql_notifs, ['id', 'trx_id'])
+        notifications = select(sql_notifs, ['id', 'trx_id']) or []
         sql = ""
         for notif in notifications:
             trx_id = notif['trx_id']
