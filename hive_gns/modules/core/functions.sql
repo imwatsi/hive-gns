@@ -56,7 +56,6 @@ CREATE OR REPLACE FUNCTION gns.core_gns( _gns_op_id BIGINT, _trx_id CHAR(40), _c
             _op_name VARCHAR;
             _data JSON;
         BEGIN
-            _op_id := _body->'value'->>'id';
 
             IF _op_id = 'gns' THEN
                 _req_auths := ARRAY(SELECT json_array_elements_text((_body->'value'->'required_auths')));
@@ -76,5 +75,9 @@ CREATE OR REPLACE FUNCTION gns.core_gns( _gns_op_id BIGINT, _trx_id CHAR(40), _c
                     END IF;
                 END IF;
             END IF;
+        EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE E'Got exception:
+                SQLSTATE: % 
+                SQLERRM: %', SQLSTATE, SQLERRM;
         END;
         $function$;

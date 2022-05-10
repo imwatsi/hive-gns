@@ -54,7 +54,7 @@ CREATE OR REPLACE FUNCTION gns.update_ops( _first_block BIGINT, _last_block BIGI
         END;
     $function$;
 
-CREATE OR REPLACE FUNCTION gns.update_module( _module VARCHAR(128), _code VARCHAR(3), _funct VARCHAR, _start_gns_op_id BIGINT, _end_gns_op_id BIGINT )
+CREATE OR REPLACE FUNCTION gns.update_module( _module VARCHAR(128), _start_gns_op_id BIGINT, _end_gns_op_id BIGINT )
     RETURNS void
     LANGUAGE plpgsql
     VOLATILE AS $function$
@@ -62,24 +62,33 @@ CREATE OR REPLACE FUNCTION gns.update_module( _module VARCHAR(128), _code VARCHA
             temprow RECORD;
             _hooks JSON;
             _code VARCHAR(3);
+            _funct VARCHAR;
+            _op_ids INT[];
         BEGIN
-            _hooks := (SELECT hooks FROM gns.module_state WHERE module = _module).hooks;
+            SELECT hooks INTO _hooks FROM gns.module_state WHERE module = _module;
+            _op_ids := ARRAY(SELECT json_array_elements_text(_hooks->'ids'));
             IF _hooks IS NOT NULL THEN
                 FOR temprow IN
                     SELECT
                         gns_op_id, op_type_id, created,
                         transaction_id, body
                     FROM gns.ops
-                    WHERE op_type_id = {_op_type_ids}
+                    WHERE op_type_id = ANY (_op_ids)
                     AND gns_op_id >= _start_gns_op_id
                     AND gns_op_id <= _end_gns_op_id
                 ORDER BY gns_op_id ASC
                 LOOP
-                    _code := _hooks->op_type_id->>'code';
-                    SELECT FORMAT('%s ( %s, %s, %s, %s, %s)', _funct, gns_op_id, transaction_id, created, body, _code);
+                    _code := _hooks->temprow.op_type_id::varchar->>'code';
+                    _funct := _hooks->temprow.op_type_id::varchar->>'func';
+                    EXECUTE FORMAT('SELECT %s ($1,$2,$3,$4,$5);', _funct) USING temprow.gns_op_id, temprow.transaction_id, temprow.created, temprow.body, _code;
                 END LOOP;
                 UPDATE gns.module_state
                 SET latest_gns_op_id = _end_gns_op_id
                 WHERE module = _module;
+            END IF;
+        EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE E'Got exception:
+                SQLSTATE: % 
+                SQLERRM: %', SQLSTATE, SQLERRM;
         END;
     $function$;
