@@ -6,7 +6,6 @@ from threading import Thread
 
 from hive_gns.database.access import write
 from hive_gns.database.haf_sync import HafSync
-from hive_gns.engine.accounts import AccountsPrefs
 from hive_gns.engine.hook_processor import HookProcessor
 from hive_gns.engine.pruner import Pruner
 from hive_gns.server import system_status
@@ -62,8 +61,6 @@ def run():
             time.sleep(1)
         modules = GnsModules()
         modules.start()
-        # start accounts preference sync
-        Thread(target=AccountsPrefs.prefs_sync).start()
         # run server
         run_server()
     except KeyboardInterrupt:

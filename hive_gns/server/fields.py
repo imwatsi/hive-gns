@@ -1,5 +1,17 @@
 class Fields:
     """Main class to hold fields for SQL queries made by endpoints."""
+
+    class Global:
+        """Global SQL fields."""
+        @classmethod
+        def get_all_notifs(cls, extra=None):
+            """Fields for the `_get_all_notifs()` global endpoint function."""
+            res = ['created', 'remark']
+            if extra:
+                return res.extend(extra)
+            else:
+                return res
+
     class Core:
         """Core module SQL fields."""
         @classmethod

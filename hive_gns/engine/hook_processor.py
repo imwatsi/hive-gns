@@ -2,7 +2,7 @@ import json
 import time
 from threading import Thread
 
-from hive_gns.database.access import alter_schema, perform
+from hive_gns.database.access import alter_schema, perform, select, write
 from hive_gns.engine.gns_sys import GnsOps, GnsStatus
 from hive_gns.database.haf_sync import HafSync
 from hive_gns.engine.verifications import ExternalVerifications
@@ -23,6 +23,7 @@ class HookProcessor:
             self.wd = f'{INSTALL_DIR}/modules/{self.module}'
             self.functions = open(f'{self.wd}/functions.sql', 'r').read()
             self.hooks = json.loads(open(f'{self.wd}/hooks.json', 'r').read())
+            self._get_notif_details()
             alter_schema(self.functions)
             self.good = True
         except Exception as e:
@@ -31,43 +32,62 @@ class HookProcessor:
             # TODO: log error
             pass
 
-    def _get_op_types(self):
-        res = {}
+    def _get_notif_details(self):
+        notifs = {}
+        type_ids = []
         for h in self.hooks:
             data = self.hooks[h]
-            res[(data[0])] = [h, data[1]]
-        return res
+            op_type_id = data[0]
+            notifs[op_type_id] = {
+                'name': h,
+                'func': data[1],
+                'code': data[2]
+            }
+            if op_type_id not in type_ids:
+                type_ids.append(op_type_id)
+        notifs['ids'] = type_ids
+        self.notifs = notifs
+        self.type_ids = type_ids
+        has = select(f"SELECT module FROM gns.module_state WHERE module='{self.module}'", ['module'], True)
+        hooks = json.dumps(self.notifs)
+        if has is not None:
+            # update
+            sql = f"""
+                UPDATE gns.module_state SET hooks='{hooks}' WHERE module='{self.module}';
+            """
+        else:
+            # insert
+            sql = f"""
+                    INSERT INTO gns.module_state (module, hooks)
+                    VALUES ('{self.module}', '{hooks}');
+                """
+        done = write(sql)
+        if done is not True:
+            raise Exception(f"Failed to save hooks to DB for module: '{self.module}")
+
     
-    def _get_op_type_ids(self, op_types):
-        return [str(ot) for ot in op_types]
+    def _get_notif_code(self, op_type_id):
+        notif_name = self.notifs[op_type_id]['code']
+        return notif_name
+    
+    def _get_notif_func(self, op_type_id):
+        notif_func = self.notifs[op_type_id]['func']
+        return notif_func
     
     def _main_loop(self):
         while True:
             head_gns_op_id = GnsStatus.get_global_latest_gns_op_id()
             cur_gns_op_id = GnsStatus.get_module_latest_gns_op_id(self.module)
             if head_gns_op_id - cur_gns_op_id > 0:
-                op_types = self._get_op_types()
-                op_type_ids = self._get_op_type_ids(op_types.keys())
-                ops = GnsOps.get_ops_in_range(op_type_ids, cur_gns_op_id+1, head_gns_op_id)
-                tot = head_gns_op_id - cur_gns_op_id
-                if not ops:
-                    time.sleep(1)
-                    GnsStatus.set_module_state(self.module, head_gns_op_id)
-                    continue
-                for o in ops:
-                    op_type_id = o['op_type_id']
-                    notif_name = op_types[op_type_id][0]
-                    func = op_types[op_type_id][1]
-                    try:
-                        done = perform(func, [o['gns_op_id'], o['transaction_id'], o['created'], json.dumps(o['body']), notif_name])
-                        GnsStatus.set_module_state(self.module, o['gns_op_id'])
-                    except Exception as e:
+                try:
+                    done = perform('gns.update_module', [self.module, cur_gns_op_id+1, head_gns_op_id])
+                    if not done:
                         # TODO: log
-                        print(e)
-                        return
-                    progress = int(((tot - (head_gns_op_id - o['gns_op_id'])) / tot) * 100)
-                    system_status.set_module_status(self.module, f"synchronizing {progress}  %")
-                GnsStatus.set_module_state(self.module, head_gns_op_id)
+                        pass
+                except Exception as err:
+                    # TODO: log
+                    print(err)
+                    return
                 if self.module in REQ_VERIFY:
                     REQ_VERIFY[self.module]()
             system_status.set_module_status(self.module, 'synchronized')
