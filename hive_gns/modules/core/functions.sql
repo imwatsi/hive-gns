@@ -12,6 +12,7 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _trx_id CHAR(40
             _remark VARCHAR(500);
             _read TIMESTAMP;
             _read_json JSON;
+            _sub BOOLEAN;
         BEGIN
             -- transfer_operation
             _from := _body->'value'->>'from';
@@ -30,16 +31,22 @@ CREATE OR REPLACE FUNCTION gns.core_transfer( _gns_op_id BIGINT, _trx_id CHAR(40
                 _amount := ((_body->'value'->>'amount')::json->>'amount')::float / 1000000;
             END IF;
 
-            _remark := FORMAT('you have received %s %s from %s', _amount, _currency, _from);
+            -- check if subscribed
+            _sub := gns.account_check_notif(_to, 'core', _notif_code);
 
-            -- check acount
-            INSERT INTO gns.accounts (account)
-            SELECT _to
-            WHERE NOT EXISTS (SELECT * FROM gns.accounts WHERE account = _to);
+            IF _sub = true THEN
 
-            -- make notification entry
-            INSERT INTO gns.account_notifs (gns_op_id, trx_id, account, module_name, notif_code, created, remark, payload, verified)
-            VALUES (_gns_op_id, _trx_id, _to, 'core', _notif_code, _created, _remark, _body, true);
+                _remark := FORMAT('you have received %s %s from %s', _amount, _currency, _from);
+
+                -- check acount
+                INSERT INTO gns.accounts (account)
+                SELECT _to
+                WHERE NOT EXISTS (SELECT * FROM gns.accounts WHERE account = _to);
+
+                -- make notification entry
+                INSERT INTO gns.account_notifs (gns_op_id, trx_id, account, module_name, notif_code, created, remark, payload, verified)
+                VALUES (_gns_op_id, _trx_id, _to, 'core', _notif_code, _created, _remark, _body, true);
+            END IF;
 
         END;
         $function$;
@@ -56,13 +63,13 @@ CREATE OR REPLACE FUNCTION gns.core_gns( _gns_op_id BIGINT, _trx_id CHAR(40), _c
             _op_name VARCHAR;
             _data JSON;
         BEGIN
-
+            _op_id := _body->'value'->>'id';
             IF _op_id = 'gns' THEN
-                _req_auths := ARRAY(SELECT json_array_elements_text((_body->'value'->'required_auths')));
+                _req_auths := ARRAY(SELECT json_array_elements_text((_body->'value'->'required_posting_auths')));
                 _acc := _req_auths[1];
-                _payload := (_body->'value'->>'json')::json;
-                _op_name := _payload->0;
-                _data := _payload->1::json;
+                _payload := _body->'value'->>'json';
+                _op_name := _payload->>0;
+                _data := (_payload->>1)::json;
                 -- update preferences
                 IF _op_name = 'prefs' THEN
                     IF _data IS NOT NULL THEN
