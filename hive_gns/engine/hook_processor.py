@@ -45,6 +45,7 @@ class HookProcessor:
             }
             if op_type_id not in type_ids:
                 type_ids.append(op_type_id)
+        notifs['ids'] = type_ids
         self.notifs = notifs
         self.type_ids = type_ids
         has = select(f"SELECT module FROM gns.module_state WHERE module='{self.module}'", ['module'], True)
@@ -79,7 +80,7 @@ class HookProcessor:
             cur_gns_op_id = GnsStatus.get_module_latest_gns_op_id(self.module)
             if head_gns_op_id - cur_gns_op_id > 0:
                 try:
-                    done = perform('gns.update_module', [self.module, ])
+                    done = perform('gns.update_module', [self.module, cur_gns_op_id+1, head_gns_op_id])
                     if not done:
                         # TODO: log
                         pass
