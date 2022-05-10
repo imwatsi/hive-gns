@@ -8,7 +8,7 @@ from hive_gns.tools import is_valid_hive_account
 
 router_core_accounts = APIRouter()
 
-def _get_all_notifs(acc, limit=None, op_data=False):
+def _get_all_notifs(acc, limit, op_data=False):
     if op_data:
         fields = Fields.Global.get_all_notifs(['payload'])
     else:
@@ -18,10 +18,6 @@ def _get_all_notifs(acc, limit=None, op_data=False):
         SELECT {_fields}
         FROM gns.account_notifs
         WHERE account = '{acc}'
-        AND created > (
-            SELECT (last_reads->>'all')::timestamp
-            FROM gns.accounts WHERE account = '{acc}'
-        )
     """
     if limit:
         sql += f"LIMIT {limit}"
@@ -49,8 +45,11 @@ def _get_preferences(account, module=None):
         WHERE account = '{account}';
     """
     res = select(sql, fields, True)
-    if module and module in res:
-        return res[module]
+    if module and module in res['prefs']:
+        return {
+            'prefs': res['prefs'][module],
+            'prefs_updated': res['prefs_updated']
+        }
     return res
 
 @router_core_accounts.get("/api/{account}/preferences", tags=['accounts'])
@@ -61,7 +60,7 @@ def account_preferences(account:str, module:str = None):
         raise HTTPException(status_code=400, detail="missing '@' in account")
     if not is_valid_hive_account(account.replace('@', '')):
         raise HTTPException(status_code=400, detail="invalid Hive account entered for 'account'")
-    prefs = _get_preferences(account, module)
+    prefs = _get_preferences(account.replace('@', ''), module)
     return prefs or {}
 
 @router_core_accounts.get("/api/{account}/notifications", tags=['accounts'])
