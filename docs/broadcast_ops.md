@@ -30,7 +30,7 @@ For example:
 
 ```
 [
-    "update",
+    "prefs",
     {
         "core": {
             "enabled": ["trn"],
@@ -45,7 +45,7 @@ For example:
 
         },
         "splinterlands": {
-            "enabled": ["*"],
+            "enabled": "*",
             "trn": {
                 "min_dec": 1
             }
