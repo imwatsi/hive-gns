@@ -1,5 +1,7 @@
 # HAF Internal Operation IDs
 
+***Filtering examples are provided. (for use in a hook's `filter` value)
+
 - `1` | `comment_operation`
 
 ```
@@ -115,6 +117,14 @@
 
 ```
 {"type":"custom_json_operation","value":{"required_auths":[],"required_posting_auths":["john-jerry"],"id":"notify","json":["setLastRead",{"date":"2022-05-10T11:20:37"}]}}
+```
+
+- Filtering example:
+
+```
+{
+    "id": "notify"
+}
 ```
 
 ---
