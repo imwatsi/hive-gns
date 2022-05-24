@@ -28,7 +28,7 @@ Study the default `/hive_gns/modules/core/hooks.json` to learn how to format you
 
 ```
 {
-    "core_transfer": [2, "gns.core_transfer", "trn"],
+    "core_transfer": [2, "gns.core_transfer", "trn", {}],
     "gns": [18, "gns.core_gns", "gns", {"id":"gns"}]
 }
 ```
