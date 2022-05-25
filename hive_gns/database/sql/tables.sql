@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS gns.global_props(
     latest_hive_rowid BIGINT DEFAULT 0,
     latest_gns_op_id BIGINT DEFAULT 0,
     latest_block_time TIMESTAMP,
-    sync_enabled BOOLEAN DEFAULT true
+    sync_enabled BOOLEAN DEFAULT true,
+    state_preloaded BOOLEAN DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS gns.ops(
