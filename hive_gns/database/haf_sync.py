@@ -2,12 +2,11 @@
 
 import os
 import time
-from hive_gns.config import Config
 
 from hive_gns.database.core import DbSession
 from hive_gns.engine.hive import make_request
 from hive_gns.server import system_status
-from hive_gns.tools import range_split
+from hive_gns.tools import GLOBAL_START_BLOCK, range_split
 
 APPLICATION_CONTEXT = "gns"
 BATCH_PROCESS_SIZE = 100000
@@ -43,8 +42,10 @@ class HafSync:
     def setup_db(cls):
         tables = open(f'{SOURCE_DIR}/tables.sql', 'r').read()
         functions = open(f'{SOURCE_DIR}/functions.sql', 'r').read()
+        state_preload = open(f'{SOURCE_DIR}/state_preload.sql', 'r').read()
         cls.db.execute(tables, None)
         cls.db.execute(functions, None)
+        cls.db.execute(state_preload, None)
         cls.db.execute(
             """
                 INSERT INTO gns.global_props (latest_block_num)
@@ -53,6 +54,15 @@ class HafSync:
             """, None
         )
         cls.db.commit()
+    
+    @classmethod
+    def state_preload(cls, start, end):
+        loaded = cls.db.select(
+            "SELECT state_preloaded FROM gns.global_props;"
+        )[0][0]
+        if loaded == False:
+            cls.db.execute(f"SELECT gns.load_state( {start}, {end})")
+            cls.db.commit()
 
     @classmethod
     def toggle_sync(cls, enabled=True):
@@ -67,6 +77,7 @@ class HafSync:
     @classmethod
     def main_loop(cls):
         start_block = cls.get_oldest_block_num()
+        cls.state_preload(GLOBAL_START_BLOCK, start_block)
         massive_sync = False
         while True:
             if cls.sync_enabled is True:
