@@ -10,7 +10,7 @@ CREATE OR REPLACE FUNCTION gns.update_ops( _first_block BIGINT, _last_block BIGI
             _hive_op_type_id SMALLINT;
             _transaction_id VARCHAR(40);
             _body JSON;
-            _hash VARCHAR;
+            _hash BYTEA;
             _new_id BIGINT;
         BEGIN
             FOR temprow IN
@@ -20,8 +20,12 @@ CREATE OR REPLACE FUNCTION gns.update_ops( _first_block BIGINT, _last_block BIGI
                     gnsov.block_num,
                     gnsov.timestamp,
                     gnsov.trx_in_block,
-                    gnsov.body
+                    gnsov.body,
+                    gnstv.trx_hash
                 FROM hive.gns_operations_view gnsov
+                LEFT JOIN hive.gns_transactions_view gnstv
+                    ON gnstv.block_num = gnsov.block_num
+                    AND gnstv.trx_in_block = gnsov.trx_in_block
                 WHERE gnsov.block_num >= _first_block
                     AND gnsov.block_num <= _last_block
                 ORDER BY gnsov.block_num, trx_in_block, gnsov.id
@@ -29,11 +33,7 @@ CREATE OR REPLACE FUNCTION gns.update_ops( _first_block BIGINT, _last_block BIGI
                 _hive_opid := temprow.hive_opid;
                 _block_num := temprow.block_num;
                 _block_timestamp = temprow.timestamp;
-                _hash := (
-                    SELECT gnstv.trx_hash FROM hive.gns_transactions_view gnstv
-                    WHERE gnstv.block_num = temprow.block_num
-                    AND gnstv.trx_in_block = temprow.trx_in_block);
-                _transaction_id := encode(_hash::bytea, 'escape');
+                _hash := temprow.trx_hash;
                 _hive_op_type_id := temprow.op_type_id;
                 _body := (temprow.body)::json;
 
@@ -41,7 +41,7 @@ CREATE OR REPLACE FUNCTION gns.update_ops( _first_block BIGINT, _last_block BIGI
                     INSERT INTO gns.ops(
                         hive_opid, op_type_id, block_num, created, transaction_id, body)
                     VALUES
-                        (_hive_opid, _hive_op_type_id, _block_num, _block_timestamp, _transaction_id, _body)
+                        (_hive_opid, _hive_op_type_id, _block_num, _block_timestamp, _hash, _body)
                     RETURNING gns_op_id
                 )
                 SELECT gns_op_id INTO _new_id FROM _ins;
@@ -62,29 +62,48 @@ CREATE OR REPLACE FUNCTION gns.update_module( _module VARCHAR(128), _start_gns_o
             temprow RECORD;
             _hooks JSON;
             _code VARCHAR(3);
-            _funct VARCHAR;
-            _op_ids INT[];
+            _value JSON;
+            _filter JSON;
+            _op_type_id SMALLINT;
+            _func VARCHAR;
+            _internal_func VARCHAR;
         BEGIN
+
             SELECT hooks INTO _hooks FROM gns.module_state WHERE module = _module;
-            _op_ids := ARRAY(SELECT json_array_elements_text(_hooks->'ids'));
-            IF _hooks IS NOT NULL THEN
-                FOR temprow IN
-                    SELECT
-                        gns_op_id, op_type_id, created,
-                        transaction_id, body
-                    FROM gns.ops
-                    WHERE op_type_id = ANY (_op_ids)
-                    AND gns_op_id >= _start_gns_op_id
-                    AND gns_op_id <= _end_gns_op_id
-                ORDER BY gns_op_id ASC
-                LOOP
-                    _code := _hooks->temprow.op_type_id::varchar->>'code';
-                    _funct := _hooks->temprow.op_type_id::varchar->>'func';
-                    EXECUTE FORMAT('SELECT %s ($1,$2,$3,$4,$5);', _funct) USING temprow.gns_op_id, temprow.transaction_id, temprow.created, temprow.body, _code;
-                END LOOP;
-                UPDATE gns.module_state
+
+            FOR _code, _value IN SELECT (json_each(_hooks))
+            LOOP
+                _filter := _value->'filter';
+                _op_type_id := _value->'op_type_id';
+                _func := _value->'func';
+                -- select function by op type
+                _internal_func := gns.get_internal_func(_op_type_id);
+                -- init update
+                EXECUTE FORMAT('SELECT %s ($1,$2,$3,$4,$5);', _internal_func)
+                USING _start_gns_op_id, _end_gns_op_id, _code, _func, _filter;
+            END LOOP;
+
+            UPDATE gns.module_state
                 SET latest_gns_op_id = _end_gns_op_id
                 WHERE module = _module;
+
+        EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE E'Got exception:
+                SQLSTATE: % 
+                SQLERRM: %', SQLSTATE, SQLERRM;
+        END;
+    $function$;
+
+
+CREATE OR REPLACE FUNCTION gns.get_internal_func( _op_type_id SMALLINT)
+    RETURNS VARCHAR
+    LANGUAGE plpgsql
+    VOLATILE AS $function$
+        BEGIN
+            IF _op_type_id = 18 THEN
+                RETURN 'process_custom_json_operation';
+            ELSIF _op_type_id = 2 THEN
+                RETURN 'process_transfer_operation';
             END IF;
         EXCEPTION WHEN OTHERS THEN
                 RAISE NOTICE E'Got exception:
@@ -92,6 +111,7 @@ CREATE OR REPLACE FUNCTION gns.update_module( _module VARCHAR(128), _start_gns_o
                 SQLERRM: %', SQLSTATE, SQLERRM;
         END;
     $function$;
+
 
 CREATE OR REPLACE FUNCTION gns.account_check_notif( _account VARCHAR(16), _module VARCHAR(128), _notif_code VARCHAR(3))
     RETURNS BOOLEAN
@@ -118,6 +138,23 @@ CREATE OR REPLACE FUNCTION gns.account_check_notif( _account VARCHAR(16), _modul
                 RETURN true;
             ELSE
                 RETURN false;
+            END IF;
+        EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE E'Got exception:
+                SQLSTATE: % 
+                SQLERRM: %', SQLSTATE, SQLERRM;
+        END;
+    $function$;
+
+CREATE OR REPLACE FUNCTION gns.run_pruner()
+    RETURNS void
+    LANGUAGE plpgsql
+    VOLATILE AS $function$
+        BEGIN
+            IF _op_type_id = 18 THEN
+                RETURN 'process_custom_json_operation';
+            ELSIF _op_type_id = 2 THEN
+                RETURN 'process_transfer_operation';
             END IF;
         EXCEPTION WHEN OTHERS THEN
                 RAISE NOTICE E'Got exception:
