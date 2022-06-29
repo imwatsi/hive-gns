@@ -1,12 +1,15 @@
 CREATE SCHEMA IF NOT EXISTS gns;
 
 CREATE TABLE IF NOT EXISTS gns.global_props(
+    head_block_num BIGINT DEFAULT 0,
+    sync_enabled BOOLEAN DEFAULT true
+);
+
+CREATE TABLE IF NOT EXISTS gns.module_state(
+    module VARCHAR(64) PRIMARY KEY,
+    defs JSON,
     latest_block_num BIGINT DEFAULT 0,
-    latest_hive_rowid BIGINT DEFAULT 0,
-    latest_gns_op_id BIGINT DEFAULT 0,
-    latest_block_time TIMESTAMP,
-    sync_enabled BOOLEAN DEFAULT true,
-    state_preloaded BOOLEAN DEFAULT false
+    check_in TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS gns.ops(
@@ -15,15 +18,9 @@ CREATE TABLE IF NOT EXISTS gns.ops(
     op_type_id SMALLINT NOT NULL,
     block_num INTEGER NOT NULL,
     created TIMESTAMP,
-    transaction_id CHAR(40),
+    transaction_id BYTEA,
     body JSON
 ) INHERITS( hive.gns );
-
-CREATE TABLE IF NOT EXISTS gns.module_state(
-    module VARCHAR(64) PRIMARY KEY,
-    hooks JSON,
-    latest_gns_op_id BIGINT DEFAULT 0
-);
 
 CREATE TABLE IF NOT EXISTS gns.accounts(
     account VARCHAR(16) PRIMARY KEY,
