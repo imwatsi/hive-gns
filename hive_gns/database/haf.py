@@ -3,13 +3,78 @@ import os
 import re
 from threading import Thread
 from hive_gns.database.core import DbSession
-from hive_gns.database.module import AvailableModules, Module
 
 from hive_gns.tools import INSTALL_DIR
 
 SOURCE_DIR = os.path.dirname(__file__) + "/sql"
 
 MAIN_CONTEXT = "gns"
+
+
+class Sync:
+
+    db_conn = DbSession()
+    error = False
+    
+    @classmethod
+    def _create_new_connection(cls):
+        if cls.error == False:
+            del cls.db_conn
+            cls.db_conn = DbSession()
+    
+    @classmethod
+    def _disable_sync(cls):
+        cls.db_conn.execute(
+            "UPDATE gns.global_props SET sync_enabled = false;"
+        )
+        cls.db_conn.commit()
+
+    @classmethod
+    def disable_module(cls, module):
+        cls.db_conn.execute(
+            f"UPDATE gns.module_state SET enabled = false WHERE module = '{module}';"
+        )
+        cls.db_conn.commit()
+    
+    @classmethod
+    def enable_module(cls, module):
+        cls.db_conn.execute(
+            f"UPDATE gns.module_state SET enabled = true WHERE module = '{module}';"
+        )
+        cls.db_conn.commit()
+    
+    @classmethod
+    def is_enabled(cls, module):
+        enabled = bool(
+            cls.db_conn.select_one(
+                f"SELECT enabled FROM gns.module_state WHERE module ='{module}';"
+            )
+        )
+        return enabled
+
+    @classmethod
+    def is_connection_open(cls):
+        return cls.db_conn.is_open()
+    
+    @classmethod
+    def is_sync_running(cls):
+        running = cls.db_conn.select_exists(
+            "SELECT * FROM gns.global_props WHERE check_in >= NOW() - INTERVAL '1 min'")
+        return running
+    
+    @classmethod
+    def start(cls):
+        try:
+            print("Running state_preload script...")
+            cls.db_conn.execute("CALL gns.load_state();")
+            print("HAF sync starting...")
+            cls.db_conn.execute("CALL gns.run_sync();")
+        except Exception as err:
+            print(f"HAF sync error: {err}")
+            cls.error = True
+            cls._disable_sync()
+            cls.db_conn.conn.close()
+            cls.db_conn.conn.close()
 
 
 class Haf:
@@ -47,8 +112,7 @@ class Haf:
         cls.db.commit()
     
     @classmethod
-    def _check_defs(cls, module, defs):
-        _block = defs['props']['start_block'] - 1
+    def _check_hooks(cls, module, defs):
         has = cls.db.select_exists(f"SELECT module FROM gns.module_state WHERE module='{module}'")
         # generate used op type ids array
         _op_ids = []
@@ -59,8 +123,8 @@ class Haf:
         if has is False:
             cls.db.execute(
                 f"""
-                    INSERT INTO gns.module_state (module, defs, latest_block_num)
-                    VALUES ('{module}', '{defs}', {_block});
+                    INSERT INTO gns.module_state (module, hooks)
+                    VALUES ('{module}', '{defs}');
                 """)
         else:
             cls.db.execute(
@@ -79,19 +143,15 @@ class Haf:
             tables = open(f'{working_dir}/{module}/tables.sql', 'r', encoding='UTF-8').read()
             cls._check_context(module, defs['props']['start_block'])
             cls._check_schema(module, tables)
-            cls._check_defs(module, defs)
+            cls._check_hooks(module, defs)
             cls._update_functions(functions)
-            AvailableModules.add_module(module, Module(module, defs))
 
     @classmethod
     def _init_gns(cls):
         cls._check_context(MAIN_CONTEXT)
-        tables = open(f'{SOURCE_DIR}/tables.sql', 'r', encoding='UTF-8').read()
-        functions = open(f'{SOURCE_DIR}/functions.sql', 'r', encoding='UTF-8').read()
-        sync = open(f'{SOURCE_DIR}/sync.sql', 'r', encoding='UTF-8').read()
-        cls.db.execute(tables)
-        cls.db.execute(functions)
-        cls.db.execute(sync)
+        for _file in ['tables.sql', 'functions.sql', 'sync.sql', 'state_preload.sql', 'filters.sql']:
+            _sql = open(f'{SOURCE_DIR}/{_file}', 'r', encoding='UTF-8').read()
+            cls.db.execute(_sql)
         cls.db.execute(
             """
                 INSERT INTO gns.global_props (head_block_num)
@@ -105,4 +165,4 @@ class Haf:
     def init(cls):
         cls._init_gns()
         cls._init_modules()
-        Thread(target=AvailableModules.module_watch).start()
+        Thread(target=Sync.start).start()
